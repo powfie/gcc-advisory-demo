@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+// Supabase import removed temporarily for this live preview environment
 import { 
   Search, Bell, Settings, User, Building2, Calculator, 
   Globe, BarChart3, ShieldAlert, Calendar as CalendarIcon, 
@@ -8,19 +8,15 @@ import {
 } from 'lucide-react';
 
 // ==========================================
-// FINAL PHASE: LIVE SUPABASE DATA & CALCULATOR
+// FINAL PHASE: PREVIEW MODE (MOCK DATA)
 // ==========================================
-
-const supabaseUrl = 'https://qbugjocnswjxcyqstiyy.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFidWdqb2Nuc3dqeGN5cXN0aXl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MDUwMjYsImV4cCI6MjA4ODM4MTAyNn0.eGo9lMxCSQzR5bA5UHpqhLph5bNZf4aEJ_mHgw2cCgw';
-
-// Initialize the Supabase client
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Note: This live preview cannot load external database packages. 
+// Use the previous code with the @supabase/supabase-js import in your local Cursor app!
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // State variables for Supabase data
+  // State variables for data
   const [clients, setClients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,19 +34,18 @@ const App = () => {
     try {
       setIsLoading(true);
       
-      // Fetching REAL data from your Supabase database
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*');
+      // Simulating a network delay for the preview
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      if (error) {
-        console.error("Supabase Error:", error.message);
-        return;
-      }
+      // Mock data so the preview works perfectly here
+      const mockData = [
+        { id: 1, name: "TechNova India Pvt Ltd", entity_type: "WOS", tp_margin: "15.5% Safe Harbour", risk_status: "Green", next_action: "File Form 3CEFA" },
+        { id: 2, name: "FinServe Global Services", entity_type: "Branch", tp_margin: "Cost Plus 10%", risk_status: "Amber", next_action: "Service PE Review" },
+        { id: 3, name: "HealthAI Innovation Labs", entity_type: "LLP", tp_margin: "N/A (Pending)", risk_status: "Red", next_action: "GAAR Substance Check" },
+        { id: 4, name: "Quantum Logistics GCC", entity_type: "JV", tp_margin: "CUP Method", risk_status: "Green", next_action: "Finalize TP Study" }
+      ];
       
-      if (data) {
-        setClients(data); 
-      }
+      setClients(mockData); 
     } catch (err) {
       console.error("Failed to fetch clients:", err);
     } finally {
@@ -285,11 +280,11 @@ const App = () => {
               {isLoading ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-12">
                   <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-4" />
-                  <p className="text-sm text-slate-500 font-medium">Loading live data from Supabase...</p>
+                  <p className="text-sm text-slate-500 font-medium">Loading live data...</p>
                 </div>
               ) : clients.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-12">
-                  <p className="text-sm text-slate-500 font-medium">No clients found in your Supabase database.</p>
+                  <p className="text-sm text-slate-500 font-medium">No clients found in your database.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto flex-1">
