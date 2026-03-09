@@ -6,16 +6,18 @@ import {
   AlertTriangle, CheckCircle2, ChevronRight, FileText, 
   TrendingUp, Clock, AlertOctagon, Layers, Menu, X, Loader2,
   Lock, Mail, LogOut, Trash2, Download, CreditCard, Shield,
-  Check
+  Check, PieChart
 } from 'lucide-react';
 
 // ==========================================
-// PHASE 8: DYNAMIC REPORTS & PDF EXPORT (FINAL)
-// Wires calculator data directly into reports and adds PDF generation via print CSS
+// PHASE 9: ENTERPRISE ANALYTICS DASHBOARD
+// *UPDATED*: Added LocalStorage persistence so Logins and 
+// Paywall bypasses survive page refreshes!
 // ==========================================
 
-// Mocking Supabase for the Preview Environment to prevent compilation errors
-let mockSession = null;
+// Mocking Supabase for the Preview Environment
+// Now reading from localStorage to survive refreshes!
+let mockSession = JSON.parse(localStorage.getItem('gcc_mock_session')) || null;
 let authListeners = [];
 
 const supabase = {
@@ -27,13 +29,15 @@ const supabase = {
     },
     signUp: async () => ({ error: null }),
     signInWithPassword: async ({email}) => {
-      // Simulate that a newly logged-in user defaults to an 'inactive' subscription
       mockSession = { user: { id: 'mock-user-123', email }, subscription: 'inactive' };
+      localStorage.setItem('gcc_mock_session', JSON.stringify(mockSession)); // Save to browser
       authListeners.forEach(listener => listener('SIGNED_IN', mockSession));
       return { error: null };
     },
     signOut: async () => {
       mockSession = null;
+      localStorage.removeItem('gcc_mock_session'); // Clear on logout
+      localStorage.removeItem('gcc_sub_status'); // Clear billing status
       authListeners.forEach(listener => listener('SIGNED_OUT', null));
     },
   },
@@ -62,20 +66,32 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
+  // Helper function to attach the saved subscription status to the user session
+  const applySubscriptionStatus = (currentSession) => {
+    if (!currentSession) return null;
+    const savedSubStatus = localStorage.getItem('gcc_sub_status');
+    if (savedSubStatus === 'active') {
+      return { ...currentSession, subscription: 'active' };
+    }
+    return currentSession;
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      setSession(applySubscriptionStatus(session));
       setIsInitializing(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(applySubscriptionStatus(newSession));
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const handleSimulateStripePayment = () => {
+    // Save payment status to browser memory so it survives refreshes
+    localStorage.setItem('gcc_sub_status', 'active');
     setSession({ ...session, subscription: 'active' });
   };
 
@@ -91,6 +107,7 @@ export default function App() {
   }
 
   if (!session) return <AuthScreen />;
+  
   if (session.subscription !== 'active') {
     return <PaywallScreen session={session} onSubscribe={handleSimulateStripePayment} onSignOut={handleSignOut} />;
   }
@@ -109,7 +126,7 @@ const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
     setTimeout(() => {
       setIsProcessing(false);
       onSubscribe();
-    }, 2000);
+    }, 1500); // Simulated short load time
   };
 
   return (
@@ -439,7 +456,7 @@ const Dashboard = ({ session, handleSignOut }) => {
     }
   };
   
-  // Phase 8: Natively export to PDF using browser print engine paired with Tailwind 'print:' utilities
+  // Natively export to PDF using browser print engine paired with Tailwind 'print:' utilities
   const handleDownloadReport = () => {
     setTimeout(() => {
       window.print();
@@ -556,69 +573,116 @@ const Dashboard = ({ session, handleSignOut }) => {
 
           {/* PAGE 1: OVERVIEW */}
           {currentView === 'overview' && (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="xl:col-span-2 flex flex-col">
-                <h2 className="text-lg font-semibold text-slate-900 mb-4">Core Advisory Modules</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                  
-                  <div onClick={() => setIsEntityModalOpen(true)} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-2.5 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors"><Layers className="w-6 h-6 text-slate-600 group-hover:text-indigo-600" /></div>
-                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Entity Structuring Simulator</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">Model WOS, BOT, JV, LLP, and EOR scenarios.</p>
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              
+              {/* KPI Metric Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                  <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mr-4">
+                    <Building2 className="w-6 h-6 text-indigo-600" />
                   </div>
-
-                  <div onClick={() => setIsTpModalOpen(true)} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-2.5 bg-indigo-50 rounded-lg transition-colors"><Calculator className="w-6 h-6 text-indigo-600" /></div>
-                      <ChevronRight className="w-5 h-5 text-indigo-400 transition-colors" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Budget 2026 TP Engine</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">Click to calculate the new 15.5% unified Safe Harbour margin.</p>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Active Portfolios</p>
+                    <p className="text-2xl font-bold text-slate-900">{clients.length}</p>
                   </div>
-
-                  <div onClick={() => setIsPeModalOpen(true)} className="bg-white p-5 rounded-xl border border-indigo-200 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group relative">
-                    <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-xl animate-pulse">LIVE RISK</div>
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-2.5 bg-rose-50 rounded-lg transition-colors"><Globe className="w-6 h-6 text-rose-600" /></div>
-                      <ChevronRight className="w-5 h-5 text-indigo-400 transition-colors" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-1">PE Risk & Expat Tracker</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">Real-time monitoring of Fixed-place Establishment triggers.</p>
+                </div>
+                
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                  <div className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center mr-4">
+                    <AlertTriangle className="w-6 h-6 text-amber-600" />
                   </div>
-
-                  <div onClick={() => setIsEtrModalOpen(true)} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-2.5 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors"><BarChart3 className="w-6 h-6 text-slate-600 group-hover:text-indigo-600" /></div>
-                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Advanced ETR Modeling</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">Pillar Two Effective Tax Rate analysis for MNCs.</p>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Entities at Risk</p>
+                    <p className="text-2xl font-bold text-slate-900">{clients.filter(c => c.risk_status === 'Amber' || c.risk_status === 'Red').length}</p>
                   </div>
+                </div>
 
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                  <div className="w-12 h-12 bg-rose-50 rounded-lg flex items-center justify-center mr-4">
+                    <Globe className="w-6 h-6 text-rose-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Expats near PE</p>
+                    <p className="text-2xl font-bold text-slate-900">{expats.filter(e => e.days_in_india >= 60).length}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                  <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center mr-4">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">System Status</p>
+                    <p className="text-xl font-bold text-emerald-600">Compliant</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="xl:col-span-1 flex flex-col">
-                <h2 className="text-lg font-semibold text-slate-900 mb-4">Master Compliance Calendar</h2>
-                <div className="bg-white border border-slate-200 rounded-xl shadow-sm flex-1 p-0 overflow-hidden">
-                  <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                    <span className="font-medium text-slate-700 text-sm">FY 2026-27 Routine</span>
+              {/* Modules Grid */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+                <div className="xl:col-span-2 flex flex-col">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-4">Core Advisory Modules</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                    
+                    <div onClick={() => setIsEntityModalOpen(true)} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors"><Layers className="w-6 h-6 text-slate-600 group-hover:text-indigo-600" /></div>
+                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                      </div>
+                      <h3 className="font-semibold text-slate-900 mb-1">Entity Structuring Simulator</h3>
+                      <p className="text-sm text-slate-500 leading-relaxed">Model WOS, BOT, JV, LLP, and EOR scenarios.</p>
+                    </div>
+
+                    <div onClick={() => setIsTpModalOpen(true)} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-indigo-50 rounded-lg transition-colors"><Calculator className="w-6 h-6 text-indigo-600" /></div>
+                        <ChevronRight className="w-5 h-5 text-indigo-400 transition-colors" />
+                      </div>
+                      <h3 className="font-semibold text-slate-900 mb-1">Budget 2026 TP Engine</h3>
+                      <p className="text-sm text-slate-500 leading-relaxed">Click to calculate the new 15.5% unified Safe Harbour margin.</p>
+                    </div>
+
+                    <div onClick={() => setIsPeModalOpen(true)} className="bg-white p-5 rounded-xl border border-indigo-200 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group relative">
+                      <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-xl animate-pulse">LIVE RISK</div>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-rose-50 rounded-lg transition-colors"><Globe className="w-6 h-6 text-rose-600" /></div>
+                        <ChevronRight className="w-5 h-5 text-indigo-400 transition-colors" />
+                      </div>
+                      <h3 className="font-semibold text-slate-900 mb-1">PE Risk & Expat Tracker</h3>
+                      <p className="text-sm text-slate-500 leading-relaxed">Real-time monitoring of Fixed-place Establishment triggers.</p>
+                    </div>
+
+                    <div onClick={() => setIsEtrModalOpen(true)} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors"><BarChart3 className="w-6 h-6 text-slate-600 group-hover:text-indigo-600" /></div>
+                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                      </div>
+                      <h3 className="font-semibold text-slate-900 mb-1">Advanced ETR Modeling</h3>
+                      <p className="text-sm text-slate-500 leading-relaxed">Pillar Two Effective Tax Rate analysis for MNCs.</p>
+                    </div>
+
                   </div>
-                  <div className="p-5 space-y-6">
-                    <div className="relative pl-4">
-                      <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-indigo-50"></div>
-                      <div className="absolute left-0.5 top-3.5 bottom-[-24px] w-px bg-slate-200"></div>
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Q1 (Apr - Jun)</h4>
-                      <div className="space-y-3">
-                        <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                          <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium text-slate-900">Safe Harbour Election</span>
-                            <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">May 30</span>
+                </div>
+
+                <div className="xl:col-span-1 flex flex-col">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-4">Master Compliance Calendar</h2>
+                  <div className="bg-white border border-slate-200 rounded-xl shadow-sm flex-1 p-0 overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                      <span className="font-medium text-slate-700 text-sm">FY 2026-27 Routine</span>
+                    </div>
+                    <div className="p-5 space-y-6">
+                      <div className="relative pl-4">
+                        <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-indigo-50"></div>
+                        <div className="absolute left-0.5 top-3.5 bottom-[-24px] w-px bg-slate-200"></div>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Q1 (Apr - Jun)</h4>
+                        <div className="space-y-3">
+                          <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                            <div className="flex justify-between mb-1">
+                              <span className="text-sm font-medium text-slate-900">Safe Harbour Election</span>
+                              <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">May 30</span>
+                            </div>
+                            <p className="text-xs text-slate-500">File Form 3CEFA for IT/ITeS margin</p>
                           </div>
-                          <p className="text-xs text-slate-500">File Form 3CEFA for IT/ITeS margin</p>
                         </div>
                       </div>
                     </div>
