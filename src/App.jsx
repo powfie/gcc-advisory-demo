@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'; 
 import { 
   Search, Bell, Settings, User, Building2, Calculator, 
   Globe, BarChart3, ShieldAlert, Calendar as CalendarIcon, 
@@ -10,71 +10,14 @@ import {
 } from 'lucide-react';
 
 // ==========================================
-// PHASE 11: ENTERPRISE AUDIT LOGS + REAL SUPABASE DATA
-// Adds compliance tracking and activity feeds for firm-wide visibility
-// Connected to Live Production Supabase Project
+// LIVE PRODUCTION SUPABASE CONNECTION
+// All mock data has been removed. This connects directly to your live database.
 // ==========================================
 
-// --- MOCK SUPABASE FOR PREVIEW ENVIRONMENT ---
-let mockSession = JSON.parse(localStorage.getItem('gcc_mock_session')) || null;
-let authListeners = [];
+const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'https://qbugjocnswjxcyqstiyy.supabase.co';
+const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFidWdqb2Nuc3dqeGN5cXN0aXl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MDUwMjYsImV4cCI6MjA4ODM4MTAyNn0.eGo9lMxCSQzR5bA5UHpqhLph5bNZf4aEJ_mHgw2cCgw';
 
-const supabase = {
-  auth: {
-    getSession: async () => ({ data: { session: mockSession } }),
-    onAuthStateChange: (listener) => {
-      authListeners.push(listener);
-      return { data: { subscription: { unsubscribe: () => { authListeners = authListeners.filter(l => l !== listener) } } } };
-    },
-    signUp: async () => ({ error: null }),
-    signInWithPassword: async ({email}) => {
-      mockSession = { user: { id: 'mock-user-123', email }, subscription: 'inactive' };
-      localStorage.setItem('gcc_mock_session', JSON.stringify(mockSession));
-      authListeners.forEach(listener => listener('SIGNED_IN', mockSession));
-      return { error: null };
-    },
-    signOut: async () => {
-      mockSession = null;
-      localStorage.removeItem('gcc_mock_session');
-      localStorage.removeItem('gcc_sub_status');
-      authListeners.forEach(listener => listener('SIGNED_OUT', null));
-    },
-  },
-  from: (table) => ({
-    select: async () => {
-      if (table === 'clients') return { data: [
-        { id: 1, name: "TechNova India Pvt Ltd", entity_type: "WOS", tp_margin: "15.5% Safe Harbour", risk_status: "Green" },
-        { id: 2, name: "FinServe Global Services", entity_type: "Branch", tp_margin: "Cost Plus 10%", risk_status: "Amber" },
-        { id: 3, name: "HealthAI Innovation Labs", entity_type: "LLP", tp_margin: "N/A (Pending)", risk_status: "Red" },
-        { id: 4, name: "Quantum Logistics GCC", entity_type: "JV", tp_margin: "CUP Method", risk_status: "Green" }
-      ], error: null };
-      if (table === 'expat_travel') return { data: [
-        { id: 1, client_id: 1, director_name: "James Wilson", days_in_india: 94 },
-        { id: 2, client_id: 2, director_name: "Sarah Jenkins", days_in_india: 75 },
-        { id: 3, client_id: 3, director_name: "Kenji Sato", days_in_india: 14 }
-      ], error: null };
-      if (table === 'team_members') return { data: [
-        { id: 1, email: "partner@big4.com", role: "Admin", status: "Active" },
-        { id: 2, email: "associate@big4.com", role: "Editor", status: "Active" }
-      ], error: null };
-      if (table === 'audit_logs') return { data: [
-        { id: 1, user: "partner@big4.com", action: "Updated TP Margin", target: "FinServe Global Services", time: "1 hour ago" },
-        { id: 2, user: "associate@big4.com", action: "Generated Tax Report", target: "TechNova India Pvt Ltd", time: "3 hours ago" },
-        { id: 3, user: "partner@big4.com", action: "Added New Client", target: "Quantum Logistics GCC", time: "Yesterday" }
-      ], error: null };
-      return { data: [], error: null };
-    },
-    insert: async () => ({ error: null }),
-    update: () => ({ eq: async () => ({ error: null }) }),
-    delete: () => ({ eq: async () => ({ error: null }) })
-  })
-};
-
-/* --- REAL SUPABASE CONFIGURATION (UNCOMMENT IN CURSOR) ---
-const supabaseUrl = 'https://qbugjocnswjxcyqstiyy.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFidWdqb2Nuc3dqeGN5cXN0aXl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MDUwMjYsImV4cCI6MjA4ODM4MTAyNn0.eGo9lMxCSQzR5bA5UHpqhLph5bNZf4aEJ_mHgw2cCgw';
 const supabase = createClient(supabaseUrl, supabaseKey);
-*/
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -433,7 +376,6 @@ const Dashboard = ({ session, handleSignOut }) => {
       time: "Just now" // In real db, use actual timestamp
     };
     
-    // Attempt to insert the log into actual Supabase
     try {
       await supabase.from('audit_logs').insert([newLog]);
     } catch (e) {
@@ -449,7 +391,7 @@ const Dashboard = ({ session, handleSignOut }) => {
     try {
       const clientWithUserId = {
         ...newClient,
-        user_id: session?.user?.id || 'mock-user-123'
+        user_id: session?.user?.id
       };
 
       const { data, error } = await supabase.from('clients').insert([clientWithUserId]).select();
@@ -1142,7 +1084,7 @@ const Dashboard = ({ session, handleSignOut }) => {
 
       {isEntityModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-900 flex items-center">
                 <Layers className="w-5 h-5 mr-2 text-indigo-600" /> Entity Structuring Simulator
