@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // import { createClient } from '@supabase/supabase-js'; // Removed for live preview compilation
 import { 
   Search, Bell, Settings, User, Building2, Calculator, 
   Globe, BarChart3, ShieldAlert, Calendar as CalendarIcon, 
   AlertTriangle, CheckCircle2, ChevronRight, FileText, 
   TrendingUp, Clock, AlertOctagon, Layers, Menu, X, Loader2,
-  Lock, Mail, LogOut
+  Lock, Mail, LogOut, Trash2, Download, CreditCard, Shield,
+  Check
 } from 'lucide-react';
 
 // ==========================================
-// PHASE 4: MULTI-PAGE ARCHITECTURE
-// Adds a state-based routing system to the sidebar
+// PHASE 8: DYNAMIC REPORTS & PDF EXPORT (FINAL)
+// Wires calculator data directly into reports and adds PDF generation via print CSS
 // ==========================================
 
 // Mocking Supabase for the Preview Environment to prevent compilation errors
@@ -26,7 +27,8 @@ const supabase = {
     },
     signUp: async () => ({ error: null }),
     signInWithPassword: async ({email}) => {
-      mockSession = { user: { email } };
+      // Simulate that a newly logged-in user defaults to an 'inactive' subscription
+      mockSession = { user: { id: 'mock-user-123', email }, subscription: 'inactive' };
       authListeners.forEach(listener => listener('SIGNED_IN', mockSession));
       return { error: null };
     },
@@ -50,7 +52,9 @@ const supabase = {
       ], error: null };
       return { data: [], error: null };
     },
-    insert: async () => ({ error: null })
+    insert: async () => ({ error: null }),
+    update: () => ({ eq: async () => ({ error: null }) }),
+    delete: () => ({ eq: async () => ({ error: null }) })
   })
 };
 
@@ -71,6 +75,12 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleSimulateStripePayment = () => {
+    setSession({ ...session, subscription: 'active' });
+  };
+
+  const handleSignOut = async () => await supabase.auth.signOut();
+
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
@@ -81,8 +91,108 @@ export default function App() {
   }
 
   if (!session) return <AuthScreen />;
-  return <Dashboard session={session} />;
+  if (session.subscription !== 'active') {
+    return <PaywallScreen session={session} onSubscribe={handleSimulateStripePayment} onSignOut={handleSignOut} />;
+  }
+
+  return <Dashboard session={session} handleSignOut={handleSignOut} />;
 }
+
+// ==========================================
+// THE PAYWALL SCREEN (STRIPE INTEGRATION)
+// ==========================================
+const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleCheckout = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      onSubscribe();
+    }, 2000);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center mr-3 shadow-sm">
+            <Building2 className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-slate-900 font-bold text-lg tracking-tight">GCC Advisory Pro</span>
+        </div>
+        <button onClick={onSignOut} className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+          Sign Out
+        </button>
+      </header>
+
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+          
+          <div className="p-10 lg:p-12 flex flex-col justify-center bg-slate-900 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-[80px]"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/20 rounded-full blur-[60px]"></div>
+            
+            <div className="relative z-10">
+              <span className="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full uppercase tracking-wider mb-6 border border-indigo-500/30">Partner Tier</span>
+              <h2 className="text-3xl font-extrabold mb-4">Unlock the complete Tax Advisory Suite.</h2>
+              <p className="text-slate-400 mb-8 leading-relaxed">
+                Join elite Big 4 partners and boutique firms using GCC Advisory Pro to instantly model entity structures and Pillar Two tax implications.
+              </p>
+
+              <div className="space-y-5">
+                {[
+                  'Entity Structuring Simulator (WOS, Branch, LLP)',
+                  'Budget 2026 Transfer Pricing Engine',
+                  'Live Expatriate PE Risk Database',
+                  'Pillar Two ETR Impact Calculator',
+                  'Unlimited PDF Strategy Reports'
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3 mt-0.5">
+                      <Check className="w-4 h-4 text-indigo-400" />
+                    </div>
+                    <span className="text-slate-300">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-10 lg:p-12 flex flex-col justify-center">
+            <div className="text-center mb-8">
+              <p className="text-sm font-bold text-indigo-600 uppercase tracking-wide mb-2">Professional License</p>
+              <div className="flex items-end justify-center">
+                <span className="text-5xl font-extrabold text-slate-900">$499</span>
+                <span className="text-slate-500 ml-2 mb-1">/ month</span>
+              </div>
+              <p className="text-sm text-slate-500 mt-3">Billed monthly. Cancel anytime.</p>
+            </div>
+
+            <div className="space-y-4">
+              <button 
+                onClick={handleCheckout}
+                disabled={isProcessing}
+                className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all"
+              >
+                {isProcessing ? (
+                  <><Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing securely...</>
+                ) : (
+                  <><CreditCard className="w-5 h-5 mr-2" /> Subscribe securely via Stripe</>
+                )}
+              </button>
+              <p className="text-xs text-center text-slate-400 mt-4 flex items-center justify-center">
+                <Lock className="w-3 h-3 mr-1" /> Guaranteed secure checkout by Stripe
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 // ==========================================
 // LOGIN SCREEN COMPONENT
@@ -184,10 +294,8 @@ const AuthScreen = () => {
 // ==========================================
 // MAIN DASHBOARD COMPONENT (Protected & Multi-Page)
 // ==========================================
-const Dashboard = ({ session }) => {
+const Dashboard = ({ session, handleSignOut }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  // NEW: State to control which "Page" is currently active
   const [currentView, setCurrentView] = useState('overview');
 
   const [clients, setClients] = useState([]);
@@ -199,6 +307,7 @@ const Dashboard = ({ session }) => {
   const [isTpModalOpen, setIsTpModalOpen] = useState(false);
   const [isPeModalOpen, setIsPeModalOpen] = useState(false);
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
+  const [isEditClientModalOpen, setIsEditClientModalOpen] = useState(false);
   const [isEtrModalOpen, setIsEtrModalOpen] = useState(false);
   
   // Module states
@@ -217,6 +326,14 @@ const Dashboard = ({ session }) => {
   const [newClient, setNewClient] = useState({
     name: '', entity_type: 'WOS', tp_margin: '15.5% Safe Harbour', risk_status: 'Green', next_action: 'Pending Review'
   });
+  
+  // Edit Client State
+  const [editingClient, setEditingClient] = useState(null);
+  
+  // Reports State
+  const [reportType, setReportType] = useState('entity');
+  const [selectedClientForReport, setSelectedClientForReport] = useState('');
+  const reportRef = useRef(null);
 
   useEffect(() => {
     fetchData();
@@ -236,8 +353,6 @@ const Dashboard = ({ session }) => {
       setIsLoading(false);
     }
   };
-
-  const handleSignOut = async () => await supabase.auth.signOut();
 
   const getRiskBadge = (risk) => {
     const riskLevel = risk?.toLowerCase();
@@ -270,11 +385,15 @@ const Dashboard = ({ session }) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await supabase.from('clients').insert([newClient]);
+      const clientWithUserId = {
+        ...newClient,
+        user_id: session?.user?.id || 'mock-user-123'
+      };
+
+      await supabase.from('clients').insert([clientWithUserId]);
       setIsAddClientModalOpen(false);
       
-      // Simulate optimistic UI update for preview speed
-      setClients([...clients, { ...newClient, id: Math.random() }]);
+      setClients([...clients, { ...clientWithUserId, id: Math.random() }]);
       setNewClient({ name: '', entity_type: 'WOS', tp_margin: '15.5% Safe Harbour', risk_status: 'Green', next_action: 'Pending Review' });
     } catch (err) {
       console.error(err);
@@ -283,17 +402,61 @@ const Dashboard = ({ session }) => {
     }
   };
 
+  const handleOpenEdit = (client) => {
+    setEditingClient(client);
+    setIsEditClientModalOpen(true);
+  };
+
+  const handleUpdateClient = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await supabase.from('clients').update({
+        name: editingClient.name,
+        entity_type: editingClient.entity_type,
+        tp_margin: editingClient.tp_margin,
+        risk_status: editingClient.risk_status
+      }).eq('id', editingClient.id);
+      
+      setClients(clients.map(c => c.id === editingClient.id ? editingClient : c));
+      setIsEditClientModalOpen(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteClient = async (id) => {
+    if (!window.confirm("Are you sure you want to completely remove this client? This action cannot be undone.")) return;
+    
+    try {
+      await supabase.from('clients').delete().eq('id', id);
+      setClients(clients.filter(c => c.id !== id));
+      setIsEditClientModalOpen(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+  // Phase 8: Natively export to PDF using browser print engine paired with Tailwind 'print:' utilities
+  const handleDownloadReport = () => {
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
   const userEmailName = session.user.email.split('@')[0];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
+    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900 print:bg-white">
       
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden print:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* DYNAMIC SIDEBAR NAVIGATION */}
-      <aside className={`fixed lg:sticky top-0 left-0 h-screen w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 z-50 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:sticky top-0 left-0 h-screen w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 z-50 print:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950/50">
           <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
             <Building2 className="w-5 h-5 text-white" />
@@ -330,6 +493,16 @@ const Dashboard = ({ session }) => {
             <FileText className="w-5 h-5 mr-3" />
             <span className="font-medium">Generated Reports</span>
           </button>
+
+          <div className="pt-4 mt-4 border-t border-slate-800">
+             <button 
+              onClick={() => { setCurrentView('settings'); setSidebarOpen(false); }} 
+              className={`w-full flex items-center px-3 py-2.5 rounded-lg group transition-colors ${currentView === 'settings' ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-300'}`}
+            >
+              <Settings className="w-5 h-5 mr-3" />
+              <span className="font-medium">Firm Settings</span>
+            </button>
+          </div>
         </nav>
         
         <div className="p-4 border-t border-slate-800">
@@ -343,7 +516,7 @@ const Dashboard = ({ session }) => {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10 sticky top-0">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10 sticky top-0 print:hidden">
           <div className="flex items-center flex-1">
             <button className="lg:hidden mr-4 text-slate-500 hover:text-slate-700" onClick={() => setSidebarOpen(true)}>
               <Menu className="w-6 h-6" />
@@ -356,26 +529,28 @@ const Dashboard = ({ session }) => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center text-sm font-medium text-slate-700 bg-slate-100 py-1.5 px-3 rounded-full border border-slate-200">
+            <div onClick={() => setCurrentView('settings')} className="flex items-center text-sm font-medium text-slate-700 bg-slate-100 py-1.5 px-3 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors">
               <span className="mr-2 capitalize hidden sm:block">{userEmailName}</span>
               <User className="h-5 w-5 text-indigo-600 bg-white rounded-full p-0.5 shadow-sm" />
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 print:p-0 print:overflow-visible">
           
           {/* Dynamic Page Header */}
-          <div className="mb-8">
+          <div className="mb-8 print:hidden">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               {currentView === 'overview' && 'Partner Dashboard'}
               {currentView === 'clients' && 'Client Portfolio Management'}
               {currentView === 'reports' && 'Tax Strategy Reports'}
+              {currentView === 'settings' && 'Firm Settings & Security'}
             </h1>
             <p className="text-sm text-slate-500 mt-1">
               {currentView === 'overview' && 'Overview of GCC setups, compliance risks, and structuring advisory.'}
               {currentView === 'clients' && 'Secure database of all active entities, TP methodologies, and risk statuses.'}
               {currentView === 'reports' && 'Generate and export comprehensive Pillar Two and Structuring models.'}
+              {currentView === 'settings' && 'Manage your advisory firm profile, team access, and subscription preferences.'}
             </p>
           </div>
 
@@ -494,7 +669,12 @@ const Dashboard = ({ session }) => {
                             <td className="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">{client.tp_margin}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{getRiskBadge(client.risk_status)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <button className="text-indigo-600 hover:text-indigo-900">Review</button>
+                              <button 
+                                onClick={() => handleOpenEdit(client)} 
+                                className="text-indigo-600 hover:text-indigo-900 font-medium bg-indigo-50 px-3 py-1.5 rounded-md hover:bg-indigo-100 transition-colors"
+                              >
+                                Review / Edit
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -506,16 +686,189 @@ const Dashboard = ({ session }) => {
             </div>
           )}
 
-          {/* PAGE 3: REPORTS PLACEHOLDER */}
+          {/* PAGE 3: REPORTS ENGINE */}
           {currentView === 'reports' && (
-            <div className="flex flex-col items-center justify-center p-16 bg-white border border-slate-200 rounded-xl shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8 text-indigo-300" />
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+              
+              {/* Report Configuration Panel */}
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 print:hidden">
+                <h2 className="text-lg font-semibold text-slate-900 mb-4 border-b border-slate-100 pb-3">Configure Tax Report</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Select Client</label>
+                    <select value={selectedClientForReport} onChange={(e) => setSelectedClientForReport(e.target.value)} className="block w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white">
+                      <option value="">-- Choose a Client --</option>
+                      {clients.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Report Module</label>
+                    <select value={reportType} onChange={(e) => setReportType(e.target.value)} className="block w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white">
+                      <option value="entity">Entity Structuring Assessment</option>
+                      <option value="tp">Transfer Pricing Safe Harbour Profile</option>
+                      <option value="pe">Permanent Establishment Risk Audit</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end">
+                   <button 
+                    onClick={handleDownloadReport}
+                    disabled={!selectedClientForReport}
+                    className="flex items-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export PDF Report
+                  </button>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Reports Module</h3>
-              <p className="text-sm text-slate-500 text-center max-w-md">
-                Automated generation of Form 3CEFA documents and Pillar Two assessment reports will be available here in the next update.
-              </p>
+
+              {/* Report Preview Canvas */}
+              {selectedClientForReport && (
+                <div>
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 px-1 print:hidden">Live Preview</h3>
+                  <div ref={reportRef} className="bg-white border border-slate-200 rounded-lg shadow-sm p-10 min-h-[500px] print:p-0 print:border-none print:shadow-none print:w-full print:absolute print:top-0 print:left-0 print:bg-white">
+                    
+                    {/* Official Letterhead */}
+                    <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-6 mb-8">
+                      <div>
+                        <div className="w-12 h-12 bg-indigo-600 rounded flex items-center justify-center mb-3">
+                          <Building2 className="w-7 h-7 text-white" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">GCC Advisory Pro</h1>
+                        <p className="text-sm text-slate-500">Prepared by: {userEmailName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-slate-900 mb-1">CONFIDENTIAL TAX MEMO</p>
+                        <p className="text-xs text-slate-500">Date: {new Date().toLocaleDateString()}</p>
+                        <p className="text-xs text-slate-500">Ref: GCC-{Math.floor(Math.random() * 10000)}</p>
+                      </div>
+                    </div>
+
+                    {/* Report Subject */}
+                    <div className="mb-8">
+                      <p className="text-sm text-slate-500 mb-1">Prepared For:</p>
+                      <h2 className="text-xl font-bold text-slate-900">{selectedClientForReport}</h2>
+                      <p className="text-sm font-medium text-indigo-600 mt-2 uppercase tracking-wide">
+                        Subject: {
+                          reportType === 'entity' ? 'Entity Structuring & Setup Feasibility in India' :
+                          reportType === 'tp' ? 'Transfer Pricing Methodology & Safe Harbour Election' :
+                          'Permanent Establishment (PE) Risk Mitigation Strategies'
+                        }
+                      </p>
+                    </div>
+
+                    {/* Dynamic Content Body */}
+                    <div className="space-y-6 text-slate-700 leading-relaxed text-sm">
+                      <p>
+                        Based on our preliminary analysis of your proposed Global Capability Center (GCC) operations, we have prepared the following assessment regarding your structural and compliance obligations under the Indian Income Tax Act, 1961.
+                      </p>
+                      
+                      <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                        <h4 className="font-bold text-slate-900 mb-3 text-base">Key Findings & Recommendations</h4>
+                        <ul className="list-disc pl-5 space-y-3">
+                          {reportType === 'entity' && (
+                            <>
+                              <li><strong>Optimal Structure:</strong> We recommend establishing a Wholly Owned Subsidiary (WOS) as a Private Limited Company.</li>
+                              <li><strong>Scale of Operations:</strong> Based on your inputs, the estimated headcount is <span className="font-bold text-slate-900">{headcount || '[Input in Simulator]'}</span> with an annual operating cost of <span className="font-bold text-slate-900">${opCost ? parseFloat(opCost).toLocaleString() : '[Input in Simulator]'}</span>.</li>
+                              <li><strong>Corporate Tax:</strong> Subject to a concessional corporate tax rate of 25.17% (inclusive of surcharge and cess).</li>
+                              <li><strong>Repatriation:</strong> Dividend distributions will be subject to withholding tax at ~20%, subject to beneficial DTAA rates.</li>
+                            </>
+                          )}
+                          {reportType === 'tp' && (
+                            <>
+                              <li><strong>Methodology:</strong> Electing for the Safe Harbour rules at a 15.5% operating profit margin reduces litigation risk.</li>
+                              <li><strong>Financial Baseline:</strong> Declared IT Service Revenue of <span className="font-bold text-slate-900">₹{revenue ? parseFloat(revenue).toLocaleString('en-IN') : '[Input in TP Engine]'}</span>.</li>
+                              <li><strong>Required Safe Harbour Profit:</strong> Minimum required profit stands at <span className="font-bold text-emerald-700">₹{calculatedProfit ? calculatedProfit.toLocaleString('en-IN') : '[Calculate in TP Engine]'}</span> to remain strictly compliant.</li>
+                              <li><strong>Documentation:</strong> Master File and Country-by-Country (CbC) reporting may be triggered based on global revenue thresholds.</li>
+                            </>
+                          )}
+                          {reportType === 'pe' && (
+                            <>
+                              <li><strong>Service PE Trigger:</strong> Expatriate personnel must not exceed 90 days of physical presence in India within a 12-month period to avoid Service PE risks under relevant DTAAs.</li>
+                              <li><strong>Fixed Place PE:</strong> Ensure the Indian entity operates independently with its own management to mitigate risks of creating a Fixed Place PE for the foreign enterprise.</li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
+
+                      <p>
+                        Please note that this is a preliminary assessment based on standard models. A detailed factual analysis is required before implementing any structuring decisions. We are available to discuss these findings in our upcoming strategy session.
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PAGE 4: SETTINGS PAGE */}
+          {currentView === 'settings' && (
+            <div className="max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              
+              {/* Firm Profile Card */}
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-bold text-slate-900 mb-1">Firm Profile</h3>
+                <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 pb-4">Manage your firm's display name and contact information.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Firm Name</label>
+                    <input type="text" defaultValue="Deloitte Touche Tohmatsu India" className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Partner Email (Contact)</label>
+                    <input type="email" value={session.user.email} disabled className="block w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed" />
+                  </div>
+                </div>
+                <div className="mt-5">
+                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Save Profile Changes
+                  </button>
+                </div>
+              </div>
+
+              {/* Security Card */}
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                <div className="flex items-center mb-1">
+                  <Shield className="w-5 h-5 text-indigo-600 mr-2" />
+                  <h3 className="text-lg font-bold text-slate-900">Authentication & Security</h3>
+                </div>
+                <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 pb-4">Update your password and secure your account.</p>
+                
+                <div className="max-w-md space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">New Password</label>
+                    <input type="password" placeholder="••••••••" className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50" />
+                  </div>
+                  <button className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Update Password
+                  </button>
+                </div>
+              </div>
+
+              {/* Billing & Subscription Card */}
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10"></div>
+                <div className="flex items-center mb-1">
+                  <CreditCard className="w-5 h-5 text-indigo-600 mr-2" />
+                  <h3 className="text-lg font-bold text-slate-900">Billing & Subscription</h3>
+                </div>
+                <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 pb-4">Manage your plan and billing history.</p>
+                
+                <div className="flex flex-col md:flex-row md:items-center justify-between p-5 border border-indigo-100 bg-indigo-50/50 rounded-lg">
+                  <div>
+                    <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase tracking-wider mb-2">Active Plan</span>
+                    <h4 className="text-xl font-bold text-slate-900">GCC Professional Tier</h4>
+                    <p className="text-sm text-slate-600 mt-1">Includes all 4 tax modules and unlimited PDF reports.</p>
+                  </div>
+                  <div className="mt-4 md:mt-0 text-right">
+                    <p className="text-2xl font-bold text-slate-900">$499<span className="text-sm text-slate-500 font-normal">/mo</span></p>
+                    <button className="mt-2 text-indigo-600 font-medium text-sm hover:underline">Manage Stripe Billing &rarr;</button>
+                  </div>
+                </div>
+              </div>
+
             </div>
           )}
 
@@ -526,8 +879,56 @@ const Dashboard = ({ session }) => {
       {/* GLOBAL MODALS           */}
       {/* ======================= */}
 
+      {/* MODAL TO EDIT OR DELETE CLIENT */}
+      {isEditClientModalOpen && editingClient && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-lg font-bold text-slate-900">Review / Edit Client</h3>
+              <button onClick={() => setIsEditClientModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1 transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleUpdateClient} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Company Name</label>
+                <input required type="text" value={editingClient.name} onChange={(e) => setEditingClient({...editingClient, name: e.target.value})} className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Entity Type</label>
+                  <select value={editingClient.entity_type} onChange={(e) => setEditingClient({...editingClient, entity_type: e.target.value})} className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    <option>WOS</option><option>Branch</option><option>LLP</option><option>JV</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Risk Status</label>
+                  <select value={editingClient.risk_status} onChange={(e) => setEditingClient({...editingClient, risk_status: e.target.value})} className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    <option>Green</option><option>Amber</option><option>Red</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">TP Margin Option</label>
+                <select value={editingClient.tp_margin} onChange={(e) => setEditingClient({...editingClient, tp_margin: e.target.value})} className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                  <option>15.5% Safe Harbour</option><option>Cost Plus 10%</option><option>CUP Method</option><option>Pending TP Study</option>
+                </select>
+              </div>
+              <div className="pt-4 flex items-center justify-between border-t border-slate-100 mt-6">
+                <button type="button" onClick={() => handleDeleteClient(editingClient.id)} className="flex items-center text-sm text-rose-600 hover:text-rose-800 font-medium px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors">
+                  <Trash2 className="w-4 h-4 mr-1.5" />
+                  Delete Client
+                </button>
+                <button type="submit" disabled={isSubmitting} className="bg-indigo-600 text-white py-2 px-5 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm">
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  {isSubmitting ? 'Saving...' : 'Save Updates'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {isEntityModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-900 flex items-center">
@@ -596,7 +997,7 @@ const Dashboard = ({ session }) => {
       )}
 
       {isAddClientModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-900">Add New Client</h3>
@@ -639,7 +1040,7 @@ const Dashboard = ({ session }) => {
       )}
 
       {isTpModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-900 flex items-center">
@@ -663,7 +1064,7 @@ const Dashboard = ({ session }) => {
       )}
 
       {isEtrModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-900 flex items-center">
@@ -722,7 +1123,7 @@ const Dashboard = ({ session }) => {
       )}
 
       {isPeModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-900 flex items-center">
