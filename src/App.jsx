@@ -6,11 +6,13 @@ import {
   AlertTriangle, CheckCircle2, ChevronRight, FileText, 
   TrendingUp, Clock, AlertOctagon, Layers, Menu, X, Loader2,
   Lock, Mail, LogOut, Trash2, Download, CreditCard, Shield,
-  Check, Activity, Plus, FileSpreadsheet, MoreVertical, Landmark
+  Check, Activity, Plus, FileSpreadsheet, MoreVertical, Landmark, MapPin,
+  TrendingDown, Info
 } from 'lucide-react';
 
 // ==========================================
-// PHASE 14: DTAA REPATRIATION ANALYZER
+// PHASE 15.5: HIGH-END ENTERPRISE UPGRADES
+// Advanced SEZ/GIFT City modeling and Penalty-driven TP Thresholds
 // ==========================================
 
 let mockSession = JSON.parse(localStorage.getItem('gcc_mock_session')) || null;
@@ -65,12 +67,6 @@ const supabase = {
     delete: () => ({ eq: async () => ({ error: null }) })
   })
 };
-
-/* --- REAL SUPABASE CONFIGURATION (FOR CURSOR/VERCEL) ---
-// const supabaseUrl = 'YOUR_URL';
-// const supabaseKey = 'YOUR_KEY';
-// const supabase = createClient(supabaseUrl, supabaseKey);
-*/
 
 const Toast = ({ message, type = 'success', onClose }) => {
   useEffect(() => {
@@ -280,7 +276,7 @@ const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
                   'Entity Structuring Simulator',
                   'Budget 2026 Transfer Pricing Engine',
                   'Live Expatriate PE Risk Database',
-                  'DTAA Repatriation Analyzer',
+                  'DTAA & SEZ Optimizers',
                   'Unlimited PDF Strategy Reports'
                 ].map((feature, i) => (
                   <div key={i} className="flex items-start">
@@ -345,6 +341,7 @@ const Dashboard = ({ session, handleSignOut }) => {
   const [isPeModalOpen, setIsPeModalOpen] = useState(false);
   const [isEtrModalOpen, setIsEtrModalOpen] = useState(false);
   const [isDtaaModalOpen, setIsDtaaModalOpen] = useState(false);
+  const [isSezModalOpen, setIsSezModalOpen] = useState(false); 
   
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   const [isEditClientModalOpen, setIsEditClientModalOpen] = useState(false);
@@ -377,10 +374,16 @@ const Dashboard = ({ session, handleSignOut }) => {
   const [opCost, setOpCost] = useState('');
   const [showEntityResults, setShowEntityResults] = useState(false);
 
-  // NEW: DTAA State
+  // DTAA State
   const [dtaaCountry, setDtaaCountry] = useState('US');
   const [dtaaAmount, setDtaaAmount] = useState('');
   const [dtaaResult, setDtaaResult] = useState(null);
+
+  // ADVANCED SEZ Optimizer State
+  const [sezRevenue, setSezRevenue] = useState('');
+  const [sezMargin, setSezMargin] = useState('15.5');
+  const [sezHeadcount, setSezHeadcount] = useState('');
+  const [sezResult, setSezResult] = useState(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newClient, setNewClient] = useState({
@@ -452,14 +455,43 @@ const Dashboard = ({ session, handleSignOut }) => {
   const handleCalculateDTAA = () => {
     const amount = parseFloat(dtaaAmount);
     if (isNaN(amount)) return;
-    
-    let rate = 0.20; // Default non-treaty withholding rate
+    let rate = 0.20; 
     if (dtaaCountry === 'US') rate = 0.15;
     if (dtaaCountry === 'UK' || dtaaCountry === 'UAE' || dtaaCountry === 'Singapore' || dtaaCountry === 'Netherlands') rate = 0.10;
 
     const tax = amount * rate;
     const net = amount - tax;
     setDtaaResult({ rate: rate * 100, tax, net });
+  };
+
+  // ADVANCED SEZ Math Logic
+  const handleCalculateSEZ = () => {
+    const rev = parseFloat(sezRevenue);
+    const margin = parseFloat(sezMargin) / 100;
+    const hc = parseInt(sezHeadcount) || 0;
+
+    if (isNaN(rev) || isNaN(margin)) return;
+    
+    const annualProfit = rev * margin;
+    
+    // Standard WOS Tax at 25.17%
+    const standardTaxAnnual = annualProfit * 0.2517;
+    const tenYearStandard = standardTaxAnnual * 10;
+    
+    // SEZ/GIFT City provides 100% deduction under Section 80LA for 10 consecutive years
+    const tenYearSez = 0; 
+    
+    // Calculate State/IT Policy Subsidies (e.g. PF reimbursement ~₹15,000/yr = ~$180 USD per employee)
+    const annualSubsidies = hc * 180;
+    const fiveYearSubsidies = annualSubsidies * 5; // Usually capped at 5 years
+    
+    setSezResult({ 
+      annualProfit,
+      standard: tenYearStandard, 
+      sez: tenYearSez, 
+      subsidies: fiveYearSubsidies,
+      savings: (tenYearStandard - tenYearSez) + fiveYearSubsidies
+    });
   };
 
   const addAuditLog = async (action, target) => {
@@ -724,7 +756,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                     <Calculator className="w-5 h-5 mr-2 text-indigo-600" /> Proprietary Advisory Engines
                   </h2>
                   
-                  {/* UPDATE: Added 4th module for DTAA */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
                     
                     <div onClick={() => setIsEntityModalOpen(true)} className="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:ring-1 hover:ring-indigo-200 transition-all duration-300 cursor-pointer group flex flex-col justify-between">
@@ -780,18 +811,34 @@ const Dashboard = ({ session, handleSignOut }) => {
                       </div>
                     </div>
 
-                    {/* NEW: DTAA Repatriation Analyzer */}
-                    <div onClick={() => setIsDtaaModalOpen(true)} className="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:ring-1 hover:ring-indigo-200 transition-all duration-300 cursor-pointer group flex flex-col justify-between sm:col-span-2 lg:col-span-2">
+                    <div onClick={() => setIsDtaaModalOpen(true)} className="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:ring-1 hover:ring-indigo-200 transition-all duration-300 cursor-pointer group flex flex-col justify-between">
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
                             <Landmark className="w-6 h-6 text-slate-600 group-hover:text-white" />
                           </div>
-                          <h3 className="font-bold text-lg text-slate-900 mb-2">DTAA Repatriation Analyzer</h3>
-                          <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md">Calculate exact withholding tax liabilities for cross-border dividend transfers under various Double Taxation Avoidance Agreements.</p>
+                          <h3 className="font-bold text-lg text-slate-900 mb-2">DTAA Analyzer</h3>
+                          <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md">Calculate exact withholding tax liabilities for cross-border dividend transfers under treaties.</p>
                         </div>
                       </div>
                       <div className="flex items-center text-indigo-600 font-semibold text-sm group-hover:translate-x-1 transition-transform">
+                        Launch Module <ChevronRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+
+                    {/* UPGRADED: GIFT City / SEZ Calculator */}
+                    <div onClick={() => setIsSezModalOpen(true)} className="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:ring-1 hover:ring-indigo-200 transition-all duration-300 cursor-pointer group flex flex-col justify-between relative overflow-hidden">
+                      <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-bl-xl uppercase tracking-wider">High ROI</div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                            <MapPin className="w-6 h-6 text-slate-600 group-hover:text-white" />
+                          </div>
+                          <h3 className="font-bold text-lg text-slate-900 mb-2">GIFT City / SEZ Optimizer</h3>
+                          <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md">Forecast 10-year tax holidays (100% exemption) incorporating MAT credits and state subsidies.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center text-emerald-600 font-semibold text-sm group-hover:translate-x-1 transition-transform">
                         Launch Module <ChevronRight className="w-4 h-4 ml-1" />
                       </div>
                     </div>
@@ -803,7 +850,7 @@ const Dashboard = ({ session, handleSignOut }) => {
                   <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
                     <CalendarIcon className="w-5 h-5 mr-2 text-indigo-600" /> Compliance Deadlines
                   </h2>
-                  <div className="bg-white border border-slate-200/60 rounded-2xl shadow-sm flex-1 p-0 overflow-hidden">
+                  <div className="bg-white border border-slate-200/60 rounded-2xl shadow-sm flex-none p-0 overflow-hidden">
                     <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                       <span className="font-bold text-slate-700 text-sm">FY 2026-27 Routine</span>
                     </div>
@@ -824,6 +871,42 @@ const Dashboard = ({ session, handleSignOut }) => {
                           ))}
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* UPGRADED: Professional TP Compliance Thresholds Tracker */}
+                  <div className="bg-white border border-slate-200/60 rounded-2xl shadow-sm flex-1 p-6 mt-8 overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50/50 rounded-bl-full -z-10 blur-2xl transition-all group-hover:bg-rose-100/50"></div>
+                    <h2 className="text-sm font-extrabold text-slate-900 mb-5 flex items-center uppercase tracking-wider">
+                      <ShieldAlert className="w-4 h-4 mr-2 text-rose-600" /> TP & CbCR Thresholds
+                    </h2>
+                    <div className="space-y-4">
+                      
+                      <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-100 hover:border-slate-300 transition-all cursor-default">
+                        <div className="flex justify-between items-start mb-1.5">
+                          <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center"><FileText className="w-3 h-3 mr-1" /> Local File (Form 3CEB)</p>
+                          <span className="text-[9px] font-bold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded shadow-sm">Penalty: 2% Txn Val</span>
+                        </div>
+                        <p className="text-sm font-extrabold text-slate-900">Int'l Txns &gt; ₹1 Crore</p>
+                      </div>
+
+                      <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-100 hover:border-slate-300 transition-all cursor-default">
+                        <div className="flex justify-between items-start mb-1.5">
+                          <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center"><FileText className="w-3 h-3 mr-1" /> Master File (Form 3CEAA)</p>
+                          <span className="text-[9px] font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded shadow-sm border border-rose-200/50">Penalty: ₹5 Lakhs</span>
+                        </div>
+                        <p className="text-sm font-extrabold text-slate-900">Cons. Rev &gt; ₹500 Cr</p>
+                        <p className="text-[11px] font-bold text-slate-500 mt-1.5 flex items-center"><Plus className="w-3 h-3 mr-1 text-slate-400"/> Int'l Txns &gt; ₹50 Cr</p>
+                      </div>
+
+                      <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-100 hover:border-slate-300 transition-all cursor-default">
+                        <div className="flex justify-between items-start mb-1.5">
+                          <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center"><Globe className="w-3 h-3 mr-1" /> CbCR (Form 3CEAD)</p>
+                          <span className="text-[9px] font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded shadow-sm border border-rose-200/50">Penalty: ₹5K/Day</span>
+                        </div>
+                        <p className="text-sm font-extrabold text-slate-900">Global Rev &gt; ₹6,400 Cr</p>
+                      </div>
+
                     </div>
                   </div>
                 </div>
@@ -1254,50 +1337,302 @@ const Dashboard = ({ session, handleSignOut }) => {
         </div>
       )}
 
-      {/* NEW: DTAA REPATRIATION ANALYZER MODAL */}
-      {isDtaaModalOpen && (
+      {/* MODAL: INVITE TEAM MEMBER */}
+      {isInviteModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200 print:hidden">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-xl font-extrabold text-slate-900">Invite Team Member</h3>
+              <button onClick={() => setIsInviteModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-8 space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Colleague's Email</label>
+                <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm" placeholder="colleague@big4.com" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Assign Role</label>
+                <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white font-medium shadow-sm">
+                  <option>Admin (Full Access)</option>
+                  <option>Editor (Can Edit Clients)</option>
+                  <option>Viewer (Read-Only)</option>
+                </select>
+              </div>
+              <div className="pt-4">
+                <button 
+                  onClick={() => {
+                    setTeamMembers([...teamMembers, { id: Math.random(), email: inviteEmail, role: inviteRole, status: 'Pending' }]);
+                    addAuditLog("Invited Team Member", inviteEmail);
+                    showToast(`Invitation sent to ${inviteEmail}`);
+                    setIsInviteModalOpen(false);
+                    setInviteEmail('');
+                  }}
+                  disabled={!inviteEmail} 
+                  className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]"
+                >
+                  Send Invitation
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isTpModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
             <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-xl font-extrabold text-slate-900 flex items-center">
-                <Landmark className="w-6 h-6 mr-2 text-indigo-600" /> DTAA Repatriation Analyzer
+                <Calculator className="w-6 h-6 mr-2 text-indigo-600" /> Budget 2026 TP Engine
               </h3>
-              <button onClick={() => { setIsDtaaModalOpen(false); setDtaaResult(null); }} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
+              <button onClick={() => setIsTpModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-8 space-y-6">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Parent Company Jurisdiction</label>
-                <select value={dtaaCountry} onChange={(e) => setDtaaCountry(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium">
-                  <option value="US">United States</option>
-                  <option value="UK">United Kingdom</option>
-                  <option value="UAE">United Arab Emirates</option>
-                  <option value="Singapore">Singapore</option>
-                  <option value="Netherlands">Netherlands</option>
-                  <option value="Other">Other (Non-Treaty)</option>
-                </select>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Total IT Service Revenue (₹)</label>
+                <input type="number" value={revenue} onChange={(e) => setRevenue(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 50000000" />
+              </div>
+              <button onClick={handleCalculateTP} disabled={!revenue} className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]">
+                Calculate Safe Harbour
+              </button>
+              {calculatedProfit !== null && (
+                <div className="mt-6 p-6 bg-emerald-50 border border-emerald-200/60 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <p className="text-sm font-bold text-emerald-800 mb-1 uppercase tracking-wider">Required Operating Profit (15.5%)</p>
+                  <p className="text-4xl font-extrabold text-emerald-600 tracking-tight">₹{calculatedProfit.toLocaleString('en-IN')}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEtrModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-xl font-extrabold text-slate-900 flex items-center">
+                <BarChart3 className="w-6 h-6 mr-2 text-indigo-600" /> Pillar Two ETR Model
+              </h3>
+              <button onClick={() => { setIsEtrModalOpen(false); setEtrResult(null); }} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="p-8 space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Global Revenue (€)</label>
+                <input type="number" value={globalRevenue} onChange={(e) => setGlobalRevenue(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 800000000" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Dividend Amount to Repatriate ($)</label>
-                <input type="number" value={dtaaAmount} onChange={(e) => setDtaaAmount(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 5000000" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Indian Profit (€)</label>
+                <input type="number" value={indianProfit} onChange={(e) => setIndianProfit(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 5000000" />
               </div>
-              <button onClick={handleCalculateDTAA} disabled={!dtaaAmount} className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]">
-                Calculate Withholding Tax
-              </button>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Current Indian Tax Paid (€)</label>
+                <input type="number" value={indianTax} onChange={(e) => setIndianTax(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 500000" />
+              </div>
+              <div className="pt-4">
+                <button onClick={handleCalculateETR} disabled={!globalRevenue || !indianProfit || !indianTax} className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]">
+                  Calculate Pillar Two Impact
+                </button>
+              </div>
+
+              {etrResult && (
+                <div className={`mt-6 p-6 border rounded-2xl transition-all animate-in fade-in slide-in-from-bottom-2 duration-300 ${!etrResult.isSubject ? 'bg-slate-50 border-slate-200' : etrResult.topUpTax > 0 ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                  {!etrResult.isSubject ? (
+                     <div className="text-center">
+                       <p className="text-base font-extrabold text-slate-800">Out of Scope</p>
+                       <p className="text-sm font-medium text-slate-500 mt-1">Global revenue is under the €750M threshold.</p>
+                     </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">Calculated ETR:</span>
+                        <span className={`text-2xl font-extrabold ${parseFloat(etrResult.etr) < 15 ? 'text-rose-600' : 'text-emerald-600'}`}>{etrResult.etr}%</span>
+                      </div>
+                      {etrResult.topUpTax > 0 ? (
+                        <div className="pt-4 mt-2 border-t border-rose-200/60">
+                          <p className="text-sm font-bold text-rose-800 mb-1 uppercase tracking-wider">Required Top-up Tax</p>
+                          <p className="text-3xl font-extrabold text-rose-600">€{etrResult.topUpTax.toLocaleString('en-EU')}</p>
+                        </div>
+                      ) : (
+                        <div className="pt-4 mt-2 border-t border-emerald-200/60 flex items-center justify-center">
+                           <CheckCircle2 className="w-5 h-5 text-emerald-600 mr-2" />
+                           <p className="text-sm font-extrabold text-emerald-800 uppercase tracking-wider">Compliant (ETR ≥ 15%)</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADVANCED SEZ OPTIMIZER MODAL */}
+      {isSezModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900 flex items-center">
+                  <MapPin className="w-6 h-6 mr-2 text-indigo-600" /> SEZ/IFSC Tax Holiday Optimizer
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">Forecast 10-year cumulative tax savings including MAT and state subsidies.</p>
+              </div>
+              <button onClick={() => { setIsSezModalOpen(false); setSezResult(null); }} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-2 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="p-8 overflow-y-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* Inputs Section */}
+                <div className="lg:col-span-5 space-y-5">
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h4 className="font-bold text-slate-800 mb-5 border-b border-slate-200 pb-2">Financial Projections</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1.5">Annual Projected Revenue ($)</label>
+                        <input type="number" value={sezRevenue} onChange={(e) => setSezRevenue(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white transition-all shadow-sm font-medium" placeholder="e.g. 5000000" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1.5">Operating Margin (%)</label>
+                        <input type="number" value={sezMargin} onChange={(e) => setSezMargin(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white transition-all shadow-sm font-medium" placeholder="15.5" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1.5">Expected Headcount</label>
+                        <input type="number" value={sezHeadcount} onChange={(e) => setSezHeadcount(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white transition-all shadow-sm font-medium" placeholder="e.g. 100" />
+                      </div>
+                    </div>
+                    <button onClick={handleCalculateSEZ} disabled={!sezRevenue || !sezMargin} className="w-full mt-6 bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]">
+                      Generate Optimization Model
+                    </button>
+                  </div>
+                </div>
+
+                {/* Results Section */}
+                <div className="lg:col-span-7">
+                  {sezResult ? (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      
+                      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/60 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                        <h4 className="text-sm font-bold text-emerald-800 uppercase tracking-wider mb-2">10-Year Cumulative Savings</h4>
+                        <div className="flex items-baseline">
+                          <span className="text-5xl font-extrabold text-emerald-600 tracking-tight">${sezResult.savings.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
+                          <span className="text-emerald-700 font-medium ml-3 border-l border-emerald-200 pl-3">vs. Standard WOS Setup</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Standard Tax Liability</p>
+                          <p className="text-2xl font-extrabold text-slate-900">${sezResult.standard.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
+                          <p className="text-xs text-slate-400 mt-1">At 25.17% over 10 years</p>
+                        </div>
+                        <div className="bg-white border border-indigo-200 rounded-xl p-5 shadow-sm">
+                          <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">SEZ / IFSC Corporate Tax</p>
+                          <p className="text-2xl font-extrabold text-indigo-600">$0</p>
+                          <p className="text-xs text-indigo-400 mt-1">100% Exemption (Sec 80LA)</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <h4 className="font-bold text-slate-900 mb-4 flex items-center">
+                          <Info className="w-4 h-4 mr-2 text-indigo-500" /> Professional Modeling Notes
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 mr-2 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">Minimum Alternate Tax (MAT)</p>
+                              <p className="text-xs text-slate-500 mt-0.5">IFSC units are subject to a 9% MAT. However, this is fully available as a credit against future standard tax liabilities, ensuring net-zero impact during the holiday period.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 mr-2 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">Projected State Subsidies Included</p>
+                              <p className="text-xs text-slate-500 mt-0.5">Calculations include estimated PF employer contribution reimbursements based on your headcount of {sezHeadcount} personnel, adding <strong>${sezResult.subsidies.toLocaleString('en-US')}</strong> in savings over 5 years.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 mr-2 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">FEMA Non-Resident Status</p>
+                              <p className="text-xs text-slate-500 mt-0.5">GIFT City entities are treated as non-residents under FEMA, allowing free repatriation of capital without standard RBI approval hurdles.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  ) : (
+                    <div className="h-full border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-center p-10 bg-slate-50/50">
+                      <MapPin className="w-12 h-12 text-slate-300 mb-4" />
+                      <h4 className="text-lg font-bold text-slate-700">Awaiting Parameters</h4>
+                      <p className="text-sm text-slate-500 max-w-sm mt-2">Enter your financial projections on the left to generate a comprehensive 10-year SEZ tax optimization model.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isPeModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-xl font-extrabold text-slate-900 flex items-center">
+                <Globe className="w-6 h-6 mr-2 text-rose-600" /> Expat PE Risk Tracker
+              </h3>
+              <button onClick={() => setIsPeModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="p-8 overflow-y-auto">
+              <p className="text-sm font-medium text-slate-500 mb-8 p-4 bg-slate-50 rounded-xl border border-slate-100">Monitoring days spent in India to prevent triggering Service PE under DTAA guidelines (Threshold: 90 days).</p>
               
-              {dtaaResult && (
-                <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
-                    <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Applicable DTAA Rate</span>
-                    <span className="text-lg font-extrabold text-slate-900">{dtaaResult.rate}%</span>
-                  </div>
-                  <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex justify-between items-center">
-                    <span className="text-sm font-bold text-rose-800 uppercase tracking-wider">Withholding Tax</span>
-                    <span className="text-lg font-extrabold text-rose-600">${dtaaResult.tax.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
-                  </div>
-                  <div className="p-6 bg-emerald-50 border border-emerald-200/60 rounded-2xl">
-                    <p className="text-sm font-bold text-emerald-800 mb-1 uppercase tracking-wider">Net Repatriated Cash</p>
-                    <p className="text-4xl font-extrabold text-emerald-600 tracking-tight">${dtaaResult.net.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
-                  </div>
+              {expats.length === 0 ? (
+                <div className="text-center p-10 bg-white border border-slate-200 border-dashed rounded-2xl">
+                  <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+                  <p className="text-base text-slate-700 font-bold">No Expat Data Found</p>
+                  <p className="text-sm text-slate-500 mt-1">Connect HR database to populate travel logs.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {expats.map((expat) => {
+                    const days = expat.days_in_india;
+                    let statusColor = "bg-emerald-500"; let bgLight = "bg-emerald-50"; let textColor = "text-emerald-700"; let warningText = "Low Risk"; let barColor = "bg-emerald-500";
+                    if (days >= 90) { statusColor = "bg-rose-500"; bgLight = "bg-rose-50"; textColor = "text-rose-700"; warningText = "CRITICAL: PE TRIGGERED"; barColor = "bg-rose-500"; } 
+                    else if (days >= 60) { statusColor = "bg-amber-500"; bgLight = "bg-amber-50"; textColor = "text-amber-700"; warningText = "Approaching Threshold"; barColor = "bg-amber-500"; }
+                    const progressPercent = Math.min((days / 90) * 100, 100);
+
+                    return (
+                      <div key={expat.id} className={`p-6 rounded-2xl border ${days >= 90 ? 'border-rose-200 shadow-sm' : 'border-slate-200'} ${bgLight} transition-all`}>
+                        <div className="flex justify-between items-end mb-4">
+                          <div>
+                            <p className="font-extrabold text-slate-900 text-lg">{expat.director_name}</p>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Client ID: {expat.client_id}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-[11px] font-extrabold px-3 py-1.5 rounded-lg bg-white border border-slate-200/60 shadow-sm uppercase tracking-wider ${textColor}`}>{warningText}</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 bg-white p-4 rounded-xl border border-slate-100/50 shadow-sm">
+                          <div className="flex justify-between text-xs font-extrabold text-slate-600 mb-2 uppercase tracking-wider">
+                            <span className={textColor}>{days} days elapsed</span>
+                            <span>90 Day Limit</span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200/50">
+                            <div className={`${barColor} h-full rounded-full transition-all duration-1000 ease-out relative`} style={{ width: `${progressPercent}%` }}>
+                               {days >= 60 && <div className="absolute top-0 right-0 bottom-0 left-0 bg-white/20 animate-pulse"></div>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
