@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-// import { createClient } from '@supabase/supabase-js'; // <-- Uncomment this line in your local Cursor editor!
+// import { createClient } from '@supabase/supabase-js'; // <-- Uncomment this when moving to Cursor!
 import { 
   Search, Bell, Settings, User, Building2, Calculator, 
   Globe, BarChart3, ShieldAlert, Calendar as CalendarIcon, 
   AlertTriangle, CheckCircle2, ChevronRight, FileText, 
   TrendingUp, Clock, AlertOctagon, Layers, Menu, X, Loader2,
   Lock, Mail, LogOut, Trash2, Download, CreditCard, Shield,
-  Check, PieChart, Activity, Plus, FileSpreadsheet, MoreVertical
+  Check, Activity, Plus, FileSpreadsheet, MoreVertical
 } from 'lucide-react';
 
 // ==========================================
-// PREVIEW ENVIRONMENT FIX + COMPLIANCE ALERT ENGINE
-// Reverting to the mock database so the Canvas UI renders properly without the npm package.
-// When you copy this to Cursor, uncomment the import above and replace this mock with your real keys!
+// THE ULTIMATE MASTER BUILD
+// Includes: Premium UI, Alert Engine, Client Dossier, and Audit Logs!
+// (Using Mock Data for Preview Stability)
 // ==========================================
 
 let mockSession = JSON.parse(localStorage.getItem('gcc_mock_session')) || null;
@@ -68,12 +68,13 @@ const supabase = {
   })
 };
 
-/* --- REAL SUPABASE CONFIGURATION (UNCOMMENT IN CURSOR) ---
-// const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'https://qbugjocnswjxcyqstiyy.supabase.co';
-// const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+/* --- REAL SUPABASE CONFIGURATION (FOR CURSOR/VERCEL) ---
+// const supabaseUrl = 'YOUR_URL';
+// const supabaseKey = 'YOUR_KEY';
 // const supabase = createClient(supabaseUrl, supabaseKey);
 */
 
+// --- TOAST NOTIFICATION COMPONENT ---
 const Toast = ({ message, type = 'success', onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
@@ -81,7 +82,7 @@ const Toast = ({ message, type = 'success', onClose }) => {
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-4 right-4 z-[200] animate-in slide-in-from-bottom-5 fade-in duration-300">
+    <div className="fixed bottom-6 right-6 z-[200] animate-in slide-in-from-bottom-5 fade-in duration-300">
       <div className="bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center border border-slate-700">
         {type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-3" /> : <AlertTriangle className="w-5 h-5 text-amber-400 mr-3" />}
         <span className="text-sm font-medium">{message}</span>
@@ -150,102 +151,7 @@ export default function App() {
 }
 
 // ==========================================
-// THE PAYWALL SCREEN (STRIPE INTEGRATION)
-// ==========================================
-const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleCheckout = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      onSubscribe();
-    }, 1500); 
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center mr-3 shadow-sm">
-            <Building2 className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-slate-900 font-bold text-lg tracking-tight">GCC Advisory Pro</span>
-        </div>
-        <button onClick={onSignOut} className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
-          Sign Out
-        </button>
-      </header>
-
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-          
-          <div className="p-10 lg:p-12 flex flex-col justify-center bg-slate-900 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-[80px]"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/20 rounded-full blur-[60px]"></div>
-            
-            <div className="relative z-10">
-              <span className="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full uppercase tracking-wider mb-6 border border-indigo-500/30">Partner Tier</span>
-              <h2 className="text-3xl font-extrabold mb-4">Unlock the complete Tax Advisory Suite.</h2>
-              <p className="text-slate-400 mb-8 leading-relaxed">
-                Join elite Big 4 partners and boutique firms using GCC Advisory Pro to instantly model entity structures and Pillar Two tax implications.
-              </p>
-
-              <div className="space-y-5">
-                {[
-                  'Entity Structuring Simulator (WOS, Branch, LLP)',
-                  'Budget 2026 Transfer Pricing Engine',
-                  'Live Expatriate PE Risk Database',
-                  'Pillar Two ETR Impact Calculator',
-                  'Unlimited PDF Strategy Reports'
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-start">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3 mt-0.5">
-                      <Check className="w-4 h-4 text-indigo-400" />
-                    </div>
-                    <span className="text-slate-300">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-10 lg:p-12 flex flex-col justify-center">
-            <div className="text-center mb-8">
-              <p className="text-sm font-bold text-indigo-600 uppercase tracking-wide mb-2">Professional License</p>
-              <div className="flex items-end justify-center">
-                <span className="text-5xl font-extrabold text-slate-900">$499</span>
-                <span className="text-slate-500 ml-2 mb-1">/ month</span>
-              </div>
-              <p className="text-sm text-slate-500 mt-3">Billed monthly. Cancel anytime.</p>
-            </div>
-
-            <div className="space-y-4">
-              <button 
-                onClick={handleCheckout}
-                disabled={isProcessing}
-                className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all"
-              >
-                {isProcessing ? (
-                  <><Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing securely...</>
-                ) : (
-                  <><CreditCard className="w-5 h-5 mr-2" /> Subscribe securely via Stripe</>
-                )}
-              </button>
-              <p className="text-xs text-center text-slate-400 mt-4 flex items-center justify-center">
-                <Lock className="w-3 h-3 mr-1" /> Guaranteed secure checkout by Stripe
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ==========================================
-// LOGIN SCREEN COMPONENT
+// LOGIN SCREEN COMPONENT (Premium Overhaul)
 // ==========================================
 const AuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -253,19 +159,15 @@ const AuthScreen = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
-    setSuccessMsg('');
-
     try {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setSuccessMsg('Account created successfully! You can now sign in.');
         setIsSignUp(false);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -314,8 +216,7 @@ const AuthScreen = () => {
               </div>
             </div>
 
-            {errorMsg && <div className="bg-rose-50 text-rose-600 px-4 py-3 rounded-lg text-sm flex items-start border border-rose-200"><AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" /><span>{errorMsg}</span></div>}
-            {successMsg && <div className="bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg text-sm flex items-start border border-emerald-200"><CheckCircle2 className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" /><span>{successMsg}</span></div>}
+            {errorMsg && <div className="bg-rose-500/10 text-rose-400 px-4 py-3 rounded-xl text-sm flex items-start border border-rose-500/20"><AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" /><span>{errorMsg}</span></div>}
 
             <div>
               <button type="submit" disabled={loading} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 hover:shadow-indigo-500/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-indigo-500 disabled:opacity-50 transition-all transform active:scale-[0.98]">
@@ -326,11 +227,11 @@ const AuthScreen = () => {
 
           <div className="mt-6">
             <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
               <div className="relative flex justify-center text-sm"><span className="px-2 bg-[#0B132B] text-slate-500">Authorized Access Only</span></div>
             </div>
             <div className="mt-6 text-center">
-              <button type="button" onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); setSuccessMsg(''); }} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+              <button type="button" onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); }} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
                 {isSignUp ? 'Already have an account? Sign in' : 'Need partner access? Request account'}
               </button>
             </div>
@@ -342,7 +243,103 @@ const AuthScreen = () => {
 };
 
 // ==========================================
-// MAIN DASHBOARD COMPONENT (Protected & Multi-Page)
+// THE PAYWALL SCREEN (STRIPE INTEGRATION)
+// ==========================================
+const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleCheckout = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      onSubscribe();
+    }, 1500); 
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center mr-3 shadow-sm">
+            <Building2 className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-slate-900 font-bold text-lg tracking-tight">GCC Advisory Pro</span>
+        </div>
+        <button onClick={onSignOut} className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+          Sign Out
+        </button>
+      </header>
+
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200/60 animate-in zoom-in-95 duration-500">
+          
+          <div className="p-10 lg:p-12 flex flex-col justify-center bg-[#0B132B] text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-[80px]"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px]"></div>
+            
+            <div className="relative z-10">
+              <span className="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full uppercase tracking-wider mb-6 border border-indigo-500/30">Partner Tier</span>
+              <h2 className="text-3xl font-extrabold mb-4">Unlock the complete Tax Advisory Suite.</h2>
+              <p className="text-slate-400 mb-8 leading-relaxed">
+                Join elite Big 4 partners and boutique firms using GCC Advisory Pro to instantly model entity structures and Pillar Two tax implications.
+              </p>
+
+              <div className="space-y-5">
+                {[
+                  'Entity Structuring Simulator (WOS, Branch, LLP)',
+                  'Budget 2026 Transfer Pricing Engine',
+                  'Live Expatriate PE Risk Database',
+                  'Pillar Two ETR Impact Calculator',
+                  'Unlimited PDF Strategy Reports'
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3 mt-0.5 border border-indigo-500/30">
+                      <Check className="w-3.5 h-3.5 text-indigo-400" />
+                    </div>
+                    <span className="text-slate-300 text-sm font-medium">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-10 lg:p-12 flex flex-col justify-center">
+            <div className="text-center mb-8">
+              <p className="text-sm font-bold text-indigo-600 uppercase tracking-wide mb-2">Professional License</p>
+              <div className="flex items-end justify-center">
+                <span className="text-5xl font-extrabold text-slate-900">$499</span>
+                <span className="text-slate-500 ml-2 mb-1">/ month</span>
+              </div>
+              <p className="text-sm text-slate-500 mt-3">Billed monthly. Cancel anytime.</p>
+            </div>
+
+            <div className="space-y-4">
+              <button 
+                onClick={handleCheckout}
+                disabled={isProcessing}
+                className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-base font-bold text-white bg-indigo-600 hover:bg-indigo-500 hover:shadow-indigo-500/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all transform active:scale-[0.98]"
+              >
+                {isProcessing ? (
+                  <><Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing securely...</>
+                ) : (
+                  <><CreditCard className="w-5 h-5 mr-2" /> Subscribe securely via Stripe</>
+                )}
+              </button>
+              <p className="text-xs text-center text-slate-400 mt-4 flex items-center justify-center">
+                <Lock className="w-3 h-3 mr-1" /> Guaranteed secure checkout by Stripe
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// ==========================================
+// MAIN DASHBOARD COMPONENT
 // ==========================================
 const Dashboard = ({ session, handleSignOut }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -364,7 +361,12 @@ const Dashboard = ({ session, handleSignOut }) => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isEtrModalOpen, setIsEtrModalOpen] = useState(false);
   
-  // Notification Engine State
+  // NEW: Client Dossier Drawer State
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [isDossierOpen, setIsDossierOpen] = useState(false);
+  const [dossierTab, setDossierTab] = useState('overview');
+
+  // NEW: Notification Engine State
   const [showNotifications, setShowNotifications] = useState(false);
   const notifications = [
     { id: 1, text: "TechNova Form 3CEFA Due", time: "2 Days", type: "warning" },
@@ -377,7 +379,7 @@ const Dashboard = ({ session, handleSignOut }) => {
     { id: 2, date: "May 15", task: "TechNova India - Form 3CEFA Filing", status: "Urgent" },
     { id: 3, date: "May 30", task: "Quantum Logistics - Master File Prep", status: "Scheduled" }
   ];
-
+  
   // Module states
   const [revenue, setRevenue] = useState('');
   const [calculatedProfit, setCalculatedProfit] = useState(null);
@@ -395,14 +397,10 @@ const Dashboard = ({ session, handleSignOut }) => {
     name: '', entity_type: 'WOS', tp_margin: '15.5% Safe Harbour', risk_status: 'Green', next_action: 'Pending Review'
   });
   
-  // Edit Client State
   const [editingClient, setEditingClient] = useState(null);
-
-  // Invite State
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('Editor');
   
-  // Reports State
   const [reportType, setReportType] = useState('entity');
   const [selectedClientForReport, setSelectedClientForReport] = useState('');
   const reportRef = useRef(null);
@@ -466,33 +464,34 @@ const Dashboard = ({ session, handleSignOut }) => {
       user: session.user.email,
       action,
       target,
-      time: "Just now" // In real db, use actual timestamp
+      time: "Just now" 
     };
-    
-    try {
-      await supabase.from('audit_logs').insert([newLog]);
-    } catch (e) {
-      console.error("Audit log error:", e);
-    }
-    
+    try { await supabase.from('audit_logs').insert([newLog]); } catch (e) {}
     setAuditLogs([newLog, ...auditLogs]);
+  };
+
+  // Dossier Actions
+  const openDossier = (client) => {
+    setSelectedClient(client);
+    setDossierTab('overview');
+    setIsDossierOpen(true);
+  };
+
+  const closeDossier = () => {
+    setIsDossierOpen(false);
+    setTimeout(() => setSelectedClient(null), 300); // Wait for slide animation
   };
 
   const handleAddClient = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const clientWithUserId = {
-        ...newClient,
-        user_id: session?.user?.id
-      };
-
+      const clientWithUserId = { ...newClient, user_id: session?.user?.id };
       const { data, error } = await supabase.from('clients').insert([clientWithUserId]).select();
       if (error) throw error;
 
       setIsAddClientModalOpen(false);
-      
-      const insertedClient = data && data.length > 0 ? data[0] : { ...clientWithUserId, id: Math.random() };
+      const insertedClient = data && data.length > 0 ? data[0] : { ...clientWithUserId, id: Math.random(), tasks: [] };
       setClients([...clients, insertedClient]);
       addAuditLog("Added New Client", newClient.name);
       setNewClient({ name: '', entity_type: 'WOS', tp_margin: '15.5% Safe Harbour', risk_status: 'Green', next_action: 'Pending Review' });
@@ -519,10 +518,15 @@ const Dashboard = ({ session, handleSignOut }) => {
         tp_margin: editingClient.tp_margin,
         risk_status: editingClient.risk_status
       }).eq('id', editingClient.id);
-      
       if (error) throw error;
 
       setClients(clients.map(c => c.id === editingClient.id ? editingClient : c));
+      
+      // Update selected client in dossier if open
+      if (selectedClient && selectedClient.id === editingClient.id) {
+        setSelectedClient({...selectedClient, ...editingClient});
+      }
+
       addAuditLog("Updated Client Details", editingClient.name);
       setIsEditClientModalOpen(false);
       showToast(`${editingClient.name} successfully updated.`);
@@ -535,12 +539,13 @@ const Dashboard = ({ session, handleSignOut }) => {
 
   const handleDeleteClient = async (client) => {
     if (!window.confirm(`Are you sure you want to completely remove ${client.name}? This action cannot be undone.`)) return;
-    
     try {
       const { error } = await supabase.from('clients').delete().eq('id', client.id);
       if (error) throw error;
       
       setClients(clients.filter(c => c.id !== client.id));
+      if (selectedClient && selectedClient.id === client.id) closeDossier();
+      
       addAuditLog("Deleted Client", client.name);
       setIsEditClientModalOpen(false);
       showToast(`${client.name} removed from database.`);
@@ -551,9 +556,7 @@ const Dashboard = ({ session, handleSignOut }) => {
   
   const handleDownloadReport = () => {
     addAuditLog("Exported PDF Report", selectedClientForReport);
-    setTimeout(() => {
-      window.print();
-    }, 100);
+    setTimeout(() => window.print(), 100);
   };
 
   const userEmailName = session.user.email.split('@')[0];
@@ -563,11 +566,10 @@ const Dashboard = ({ session, handleSignOut }) => {
       
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden print:hidden transition-opacity" onClick={() => setSidebarOpen(false)} />
-      )}
+      {/* Sidebar Overlay */}
+      {sidebarOpen && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity" onClick={() => setSidebarOpen(false)} />}
 
-      {/* DYNAMIC SIDEBAR NAVIGATION */}
+      {/* PREMIUM SIDEBAR */}
       <aside className={`fixed lg:sticky top-0 left-0 h-screen w-72 bg-[#0B132B] text-slate-300 flex flex-col transition-transform duration-300 ease-in-out z-50 print:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="h-20 flex items-center px-6 border-b border-white/5 bg-[#070D1F]">
           <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center mr-3 shadow-[0_0_20px_rgba(79,70,229,0.2)]">
@@ -629,9 +631,10 @@ const Dashboard = ({ session, handleSignOut }) => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         
+        {/* Glassmorphism Header */}
         <header className="h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-6 lg:px-10 z-30 sticky top-0 supports-[backdrop-filter]:bg-white/60 print:hidden">
           <div className="flex items-center flex-1">
             <button className="lg:hidden mr-4 text-slate-500 hover:text-indigo-600 transition-colors" onClick={() => setSidebarOpen(true)}>
@@ -646,7 +649,7 @@ const Dashboard = ({ session, handleSignOut }) => {
           </div>
           <div className="flex items-center space-x-3">
             
-            {/* UPDATED: Notification Center */}
+            {/* NOTIFICATION CENTER */}
             <div className="relative">
               <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors rounded-full hover:bg-indigo-50">
                 <Bell className="w-5 h-5" />
@@ -655,14 +658,15 @@ const Dashboard = ({ session, handleSignOut }) => {
               
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                  <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                  <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                     <h4 className="font-bold text-slate-900">Alert Center</h4>
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">{notifications.length} New</span>
                   </div>
                   <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
                     {notifications.map(notif => (
-                      <div key={notif.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer">
+                      <div key={notif.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group">
                         <div className="flex justify-between items-start mb-1">
-                          <p className="text-sm font-bold text-slate-800">{notif.text}</p>
+                          <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{notif.text}</p>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${notif.type === 'critical' ? 'bg-rose-100 text-rose-700' : notif.type === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>{notif.time}</span>
                         </div>
                         <p className="text-xs text-slate-500">Click to view details</p>
@@ -673,7 +677,7 @@ const Dashboard = ({ session, handleSignOut }) => {
               )}
             </div>
 
-            <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors rounded-full hover:bg-indigo-50">
+            <button onClick={() => setCurrentView('settings')} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors rounded-full hover:bg-indigo-50">
               <Settings className="w-5 h-5" />
             </button>
           </div>
@@ -703,7 +707,7 @@ const Dashboard = ({ session, handleSignOut }) => {
           {currentView === 'overview' && (
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-10">
               
-              {/* KPI Metric Cards */}
+              {/* Premium Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { label: "Active GCCs", val: clients.length, icon: Building2, color: "indigo" },
@@ -724,7 +728,7 @@ const Dashboard = ({ session, handleSignOut }) => {
                 ))}
               </div>
 
-              {/* Modules Grid */}
+              {/* Modules Grid & Compliance Tracker */}
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
                 <div className="xl:col-span-2 flex flex-col">
                   <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
@@ -788,7 +792,7 @@ const Dashboard = ({ session, handleSignOut }) => {
                   </div>
                 </div>
 
-                {/* UPDATED: Dynamic Master Compliance Calendar */}
+                {/* COMPLIANCE CALENDAR */}
                 <div className="xl:col-span-1 flex flex-col">
                   <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
                     <CalendarIcon className="w-5 h-5 mr-2 text-indigo-600" /> Compliance Deadlines
@@ -804,7 +808,7 @@ const Dashboard = ({ session, handleSignOut }) => {
                         <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">May 2026</h4>
                         <div className="space-y-4">
                           {deadlines.map(d => (
-                            <div key={d.id} className="bg-white rounded-xl p-5 border border-slate-200/80 hover:border-indigo-300 hover:shadow-md transition-all">
+                            <div key={d.id} className="bg-white rounded-xl p-5 border border-slate-200/80 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer">
                               <div className="flex justify-between items-center mb-3">
                                 <span className="text-sm font-bold text-slate-900 flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5 text-slate-400"/> {d.date}</span>
                                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${d.status === 'Urgent' ? 'bg-rose-100 text-rose-700 border border-rose-200/50' : 'bg-slate-100 text-slate-600 border border-slate-200/50'}`}>{d.status}</span>
@@ -852,12 +856,12 @@ const Dashboard = ({ session, handleSignOut }) => {
                           <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px]">Structure</th>
                           <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px]">Pricing Margin</th>
                           <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px]">Health</th>
-                          <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px] text-right">Action</th>
+                          <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px] text-right">Dossier</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-slate-50">
                         {clients.map((client) => (
-                          <tr key={client.id || client.name} className="hover:bg-slate-50/60 transition-colors group cursor-pointer" onClick={() => handleOpenEdit(client)}>
+                          <tr key={client.id || client.name} className="hover:bg-slate-50/60 transition-colors group cursor-pointer" onClick={() => openDossier(client)}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold mr-3 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -871,7 +875,7 @@ const Dashboard = ({ session, handleSignOut }) => {
                             <td className="px-6 py-4 whitespace-nowrap">{getRiskBadge(client.risk_status)}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
                               <button className="text-slate-400 group-hover:text-indigo-600 transition-colors p-2 hover:bg-indigo-50 rounded-lg">
-                                <Settings className="w-4 h-4" />
+                                <ChevronRight className="w-5 h-5" />
                               </button>
                             </td>
                           </tr>
@@ -1044,6 +1048,7 @@ const Dashboard = ({ session, handleSignOut }) => {
           {currentView === 'settings' && (
             <div className="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
               
+              {/* Firm Profile Card */}
               <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8">
                 <h3 className="text-xl font-extrabold text-slate-900 mb-2">Firm Profile</h3>
                 <p className="text-sm font-medium text-slate-500 mb-8 border-b border-slate-100 pb-6">Manage your advisory firm's global display identity.</p>
@@ -1065,6 +1070,26 @@ const Dashboard = ({ session, handleSignOut }) => {
                 </div>
               </div>
 
+              {/* Security Card */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8">
+                <div className="flex items-center mb-2">
+                  <Shield className="w-6 h-6 text-indigo-600 mr-3" />
+                  <h3 className="text-xl font-extrabold text-slate-900">Authentication & Security</h3>
+                </div>
+                <p className="text-sm font-medium text-slate-500 mb-8 border-b border-slate-100 pb-6">Update your password and secure your account.</p>
+                
+                <div className="max-w-md space-y-5">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">New Password</label>
+                    <input type="password" placeholder="••••••••" className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 font-medium transition-all shadow-sm" />
+                  </div>
+                  <button className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg">
+                    Update Password
+                  </button>
+                </div>
+              </div>
+
+              {/* Billing & Subscription Card */}
               <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-bl-full -z-10 blur-3xl"></div>
                 <div className="flex items-center mb-2">
@@ -1088,6 +1113,7 @@ const Dashboard = ({ session, handleSignOut }) => {
                 </div>
               </div>
 
+              {/* Team Management Card */}
               <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
@@ -1139,6 +1165,135 @@ const Dashboard = ({ session, handleSignOut }) => {
 
         </div>
       </main>
+
+      {/* ======================= */}
+      {/* THE CLIENT DOSSIER (SLIDE-OVER DRAWER) */}
+      {/* ======================= */}
+      
+      {/* Drawer Backdrop */}
+      {isDossierOpen && (
+        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[100] transition-opacity duration-300 print:hidden" onClick={closeDossier} />
+      )}
+
+      {/* Drawer Panel */}
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl z-[110] transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col border-l border-slate-200 print:hidden ${isDossierOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        
+        {selectedClient && (
+          <>
+            {/* Dossier Header */}
+            <div className="px-6 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start">
+              <div>
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-sm">
+                    {selectedClient.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 leading-none">{selectedClient.name}</h2>
+                    <p className="text-sm text-slate-500 mt-1">ID: GCC-{selectedClient.id.toString().substring(2, 6)}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2 mt-4">
+                  {getRiskBadge(selectedClient.risk_status)}
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-sm">{selectedClient.entity_type}</span>
+                </div>
+              </div>
+              <button onClick={closeDossier} className="bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-full p-2 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
+            </div>
+
+            {/* Dossier Tabs */}
+            <div className="flex border-b border-slate-100 px-6">
+              {['overview', 'actions', 'vault'].map(tab => (
+                <button 
+                  key={tab} 
+                  onClick={() => setDossierTab(tab)}
+                  className={`py-4 px-4 text-sm font-bold capitalize tracking-wide transition-colors relative ${dossierTab === tab ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  {tab === 'actions' ? 'Action Items' : tab}
+                  {dossierTab === tab && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-t-full"></span>}
+                </button>
+              ))}
+            </div>
+
+            {/* Dossier Content */}
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30">
+              
+              {dossierTab === 'overview' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Tax Parameters</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-slate-500 mb-1">Transfer Pricing Margin</p>
+                        <p className="font-semibold text-slate-900">{selectedClient.tp_margin}</p>
+                      </div>
+                      <div className="border-t border-slate-100 pt-4">
+                        <p className="text-sm text-slate-500 mb-1">Entity Structure</p>
+                        <p className="font-semibold text-slate-900">{selectedClient.entity_type}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button onClick={() => handleOpenEdit(selectedClient)} className="w-full flex items-center justify-center py-3.5 bg-white border border-slate-200/80 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-indigo-300 transition-all shadow-sm">
+                    <Settings className="w-4 h-4 mr-2" /> Edit Client Parameters
+                  </button>
+                  <button onClick={() => handleDeleteClient(selectedClient)} className="w-full flex items-center justify-center py-3.5 bg-rose-50 border border-rose-100/80 rounded-xl text-sm font-bold text-rose-600 hover:bg-rose-100 transition-all shadow-sm">
+                    <Trash2 className="w-4 h-4 mr-2" /> Remove from Database
+                  </button>
+                </div>
+              )}
+
+              {dossierTab === 'actions' && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Compliance</h4>
+                    <button className="text-indigo-600 hover:text-indigo-700 text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Task</button>
+                  </div>
+                  
+                  {selectedClient.tasks && selectedClient.tasks.length > 0 ? (
+                    selectedClient.tasks.map(task => (
+                      <div key={task.id} className={`p-4 rounded-xl border flex items-start cursor-pointer transition-colors ${task.done ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-indigo-100 shadow-sm hover:border-indigo-300'}`}>
+                        <div className={`w-5 h-5 rounded border flex items-center justify-center mr-3 mt-0.5 flex-shrink-0 transition-colors ${task.done ? 'bg-emerald-500 border-emerald-600 text-white' : 'border-slate-300 bg-white'}`}>
+                          {task.done && <Check className="w-3 h-3" />}
+                        </div>
+                        <p className={`text-sm font-medium ${task.done ? 'text-slate-500 line-through' : 'text-slate-900'}`}>{task.text}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center p-8 bg-white border border-slate-200 border-dashed rounded-xl">
+                      <p className="text-sm text-slate-500 font-medium">No active tasks for this client.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {dossierTab === 'vault' && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <button className="w-full border-2 border-dashed border-slate-200 bg-white hover:bg-slate-50 hover:border-indigo-300 rounded-xl p-6 text-center transition-all group shadow-sm">
+                    <div className="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-700">Upload Document</p>
+                    <p className="text-xs text-slate-400 mt-1">TP Studies, Form 3CEFA, Incorporation Docs</p>
+                  </button>
+
+                  <div className="pt-4">
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center">
+                        <FileSpreadsheet className="w-8 h-8 text-emerald-500 mr-3" />
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">FY25 TP Master File.pdf</p>
+                          <p className="text-xs text-slate-400">Added 2 days ago</p>
+                        </div>
+                      </div>
+                      <button className="text-slate-400 hover:text-slate-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors"><MoreVertical className="w-5 h-5"/></button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* ======================= */}
       {/* GLOBAL MODALS           */}
@@ -1317,6 +1472,7 @@ const Dashboard = ({ session, handleSignOut }) => {
         </div>
       )}
 
+      {/* MODAL TO ADD NEW CLIENT */}
       {isAddClientModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200 print:hidden">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
@@ -1350,8 +1506,9 @@ const Dashboard = ({ session, handleSignOut }) => {
                 </select>
               </div>
               <div className="pt-4">
-                <button type="submit" className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all flex justify-center items-center transform active:scale-[0.98]">
-                  Add to Portfolio Database
+                <button type="submit" disabled={isSubmitting} className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all flex justify-center items-center transform active:scale-[0.98]">
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  {isSubmitting ? 'Saving...' : 'Add to Portfolio Database'}
                 </button>
               </div>
             </form>
