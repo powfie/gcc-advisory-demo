@@ -6,13 +6,11 @@ import {
   AlertTriangle, CheckCircle2, ChevronRight, FileText, 
   TrendingUp, Clock, AlertOctagon, Layers, Menu, X, Loader2,
   Lock, Mail, LogOut, Trash2, Download, CreditCard, Shield,
-  Check, Activity, Plus, FileSpreadsheet, MoreVertical
+  Check, Activity, Plus, FileSpreadsheet, MoreVertical, Landmark
 } from 'lucide-react';
 
 // ==========================================
-// THE ULTIMATE MASTER BUILD
-// Includes: Premium UI, Alert Engine, Client Dossier, and Audit Logs!
-// (Using Mock Data for Preview Stability)
+// PHASE 14: DTAA REPATRIATION ANALYZER
 // ==========================================
 
 let mockSession = JSON.parse(localStorage.getItem('gcc_mock_session')) || null;
@@ -74,7 +72,6 @@ const supabase = {
 // const supabase = createClient(supabaseUrl, supabaseKey);
 */
 
-// --- TOAST NOTIFICATION COMPONENT ---
 const Toast = ({ message, type = 'success', onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
@@ -150,9 +147,6 @@ export default function App() {
   return <Dashboard session={session} handleSignOut={handleSignOut} />;
 }
 
-// ==========================================
-// LOGIN SCREEN COMPONENT (Premium Overhaul)
-// ==========================================
 const AuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -242,9 +236,6 @@ const AuthScreen = () => {
   );
 };
 
-// ==========================================
-// THE PAYWALL SCREEN (STRIPE INTEGRATION)
-// ==========================================
 const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -286,10 +277,10 @@ const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
 
               <div className="space-y-5">
                 {[
-                  'Entity Structuring Simulator (WOS, Branch, LLP)',
+                  'Entity Structuring Simulator',
                   'Budget 2026 Transfer Pricing Engine',
                   'Live Expatriate PE Risk Database',
-                  'Pillar Two ETR Impact Calculator',
+                  'DTAA Repatriation Analyzer',
                   'Unlimited PDF Strategy Reports'
                 ].map((feature, i) => (
                   <div key={i} className="flex items-start">
@@ -338,9 +329,6 @@ const PaywallScreen = ({ session, onSubscribe, onSignOut }) => {
 };
 
 
-// ==========================================
-// MAIN DASHBOARD COMPONENT
-// ==========================================
 const Dashboard = ({ session, handleSignOut }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('overview');
@@ -352,21 +340,20 @@ const Dashboard = ({ session, handleSignOut }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState(null);
 
-  // Modals state
   const [isEntityModalOpen, setIsEntityModalOpen] = useState(false);
   const [isTpModalOpen, setIsTpModalOpen] = useState(false);
   const [isPeModalOpen, setIsPeModalOpen] = useState(false);
+  const [isEtrModalOpen, setIsEtrModalOpen] = useState(false);
+  const [isDtaaModalOpen, setIsDtaaModalOpen] = useState(false);
+  
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   const [isEditClientModalOpen, setIsEditClientModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isEtrModalOpen, setIsEtrModalOpen] = useState(false);
   
-  // NEW: Client Dossier Drawer State
   const [selectedClient, setSelectedClient] = useState(null);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [dossierTab, setDossierTab] = useState('overview');
 
-  // NEW: Notification Engine State
   const [showNotifications, setShowNotifications] = useState(false);
   const notifications = [
     { id: 1, text: "TechNova Form 3CEFA Due", time: "2 Days", type: "warning" },
@@ -380,7 +367,6 @@ const Dashboard = ({ session, handleSignOut }) => {
     { id: 3, date: "May 30", task: "Quantum Logistics - Master File Prep", status: "Scheduled" }
   ];
   
-  // Module states
   const [revenue, setRevenue] = useState('');
   const [calculatedProfit, setCalculatedProfit] = useState(null);
   const [globalRevenue, setGlobalRevenue] = useState('');
@@ -391,7 +377,11 @@ const Dashboard = ({ session, handleSignOut }) => {
   const [opCost, setOpCost] = useState('');
   const [showEntityResults, setShowEntityResults] = useState(false);
 
-  // Form State
+  // NEW: DTAA State
+  const [dtaaCountry, setDtaaCountry] = useState('US');
+  const [dtaaAmount, setDtaaAmount] = useState('');
+  const [dtaaResult, setDtaaResult] = useState(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newClient, setNewClient] = useState({
     name: '', entity_type: 'WOS', tp_margin: '15.5% Safe Harbour', risk_status: 'Green', next_action: 'Pending Review'
@@ -459,6 +449,19 @@ const Dashboard = ({ session, handleSignOut }) => {
     setEtrResult({ isSubject: isSubjectToPillarTwo, etr: etr.toFixed(2), topUpTax: topUpTax > 0 ? topUpTax : 0 });
   };
 
+  const handleCalculateDTAA = () => {
+    const amount = parseFloat(dtaaAmount);
+    if (isNaN(amount)) return;
+    
+    let rate = 0.20; // Default non-treaty withholding rate
+    if (dtaaCountry === 'US') rate = 0.15;
+    if (dtaaCountry === 'UK' || dtaaCountry === 'UAE' || dtaaCountry === 'Singapore' || dtaaCountry === 'Netherlands') rate = 0.10;
+
+    const tax = amount * rate;
+    const net = amount - tax;
+    setDtaaResult({ rate: rate * 100, tax, net });
+  };
+
   const addAuditLog = async (action, target) => {
     const newLog = {
       user: session.user.email,
@@ -470,7 +473,6 @@ const Dashboard = ({ session, handleSignOut }) => {
     setAuditLogs([newLog, ...auditLogs]);
   };
 
-  // Dossier Actions
   const openDossier = (client) => {
     setSelectedClient(client);
     setDossierTab('overview');
@@ -479,7 +481,7 @@ const Dashboard = ({ session, handleSignOut }) => {
 
   const closeDossier = () => {
     setIsDossierOpen(false);
-    setTimeout(() => setSelectedClient(null), 300); // Wait for slide animation
+    setTimeout(() => setSelectedClient(null), 300); 
   };
 
   const handleAddClient = async (e) => {
@@ -522,7 +524,6 @@ const Dashboard = ({ session, handleSignOut }) => {
 
       setClients(clients.map(c => c.id === editingClient.id ? editingClient : c));
       
-      // Update selected client in dossier if open
       if (selectedClient && selectedClient.id === editingClient.id) {
         setSelectedClient({...selectedClient, ...editingClient});
       }
@@ -566,10 +567,8 @@ const Dashboard = ({ session, handleSignOut }) => {
       
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Sidebar Overlay */}
       {sidebarOpen && <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity" onClick={() => setSidebarOpen(false)} />}
 
-      {/* PREMIUM SIDEBAR */}
       <aside className={`fixed lg:sticky top-0 left-0 h-screen w-72 bg-[#0B132B] text-slate-300 flex flex-col transition-transform duration-300 ease-in-out z-50 print:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="h-20 flex items-center px-6 border-b border-white/5 bg-[#070D1F]">
           <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center mr-3 shadow-[0_0_20px_rgba(79,70,229,0.2)]">
@@ -625,16 +624,12 @@ const Dashboard = ({ session, handleSignOut }) => {
             </div>
           </div>
           <button onClick={handleSignOut} className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-bold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors border border-transparent hover:border-rose-500/20">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            <LogOut className="w-4 h-4 mr-2" /> Sign Out
           </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        
-        {/* Glassmorphism Header */}
         <header className="h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between px-6 lg:px-10 z-30 sticky top-0 supports-[backdrop-filter]:bg-white/60 print:hidden">
           <div className="flex items-center flex-1">
             <button className="lg:hidden mr-4 text-slate-500 hover:text-indigo-600 transition-colors" onClick={() => setSidebarOpen(true)}>
@@ -648,8 +643,6 @@ const Dashboard = ({ session, handleSignOut }) => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            
-            {/* NOTIFICATION CENTER */}
             <div className="relative">
               <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors rounded-full hover:bg-indigo-50">
                 <Bell className="w-5 h-5" />
@@ -685,7 +678,6 @@ const Dashboard = ({ session, handleSignOut }) => {
 
         <div className="flex-1 overflow-auto p-6 lg:p-10 pb-24 scroll-smooth print:p-0 print:overflow-visible">
           
-          {/* Dynamic Page Header */}
           <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-500 print:hidden">
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
               {currentView === 'overview' && 'Executive Overview'}
@@ -703,11 +695,9 @@ const Dashboard = ({ session, handleSignOut }) => {
             </p>
           </div>
 
-          {/* PAGE 1: OVERVIEW */}
           {currentView === 'overview' && (
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-10">
               
-              {/* Premium Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { label: "Active GCCs", val: clients.length, icon: Building2, color: "indigo" },
@@ -728,12 +718,13 @@ const Dashboard = ({ session, handleSignOut }) => {
                 ))}
               </div>
 
-              {/* Modules Grid & Compliance Tracker */}
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
                 <div className="xl:col-span-2 flex flex-col">
                   <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
                     <Calculator className="w-5 h-5 mr-2 text-indigo-600" /> Proprietary Advisory Engines
                   </h2>
+                  
+                  {/* UPDATE: Added 4th module for DTAA */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
                     
                     <div onClick={() => setIsEntityModalOpen(true)} className="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:ring-1 hover:ring-indigo-200 transition-all duration-300 cursor-pointer group flex flex-col justify-between">
@@ -789,10 +780,25 @@ const Dashboard = ({ session, handleSignOut }) => {
                       </div>
                     </div>
 
+                    {/* NEW: DTAA Repatriation Analyzer */}
+                    <div onClick={() => setIsDtaaModalOpen(true)} className="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-300 hover:ring-1 hover:ring-indigo-200 transition-all duration-300 cursor-pointer group flex flex-col justify-between sm:col-span-2 lg:col-span-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                            <Landmark className="w-6 h-6 text-slate-600 group-hover:text-white" />
+                          </div>
+                          <h3 className="font-bold text-lg text-slate-900 mb-2">DTAA Repatriation Analyzer</h3>
+                          <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md">Calculate exact withholding tax liabilities for cross-border dividend transfers under various Double Taxation Avoidance Agreements.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center text-indigo-600 font-semibold text-sm group-hover:translate-x-1 transition-transform">
+                        Launch Module <ChevronRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
-                {/* COMPLIANCE CALENDAR */}
                 <div className="xl:col-span-1 flex flex-col">
                   <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
                     <CalendarIcon className="w-5 h-5 mr-2 text-indigo-600" /> Compliance Deadlines
@@ -888,10 +894,8 @@ const Dashboard = ({ session, handleSignOut }) => {
             </div>
           )}
 
-          {/* PAGE 3: REPORTS ENGINE */}
           {currentView === 'reports' && (
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-6">
-              
               <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8 print:hidden">
                 <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center border-b border-slate-100 pb-4">
                   <FileText className="w-5 h-5 mr-2 text-indigo-600" /> Configure Strategy Report
@@ -919,8 +923,7 @@ const Dashboard = ({ session, handleSignOut }) => {
                     disabled={!selectedClientForReport}
                     className="flex items-center bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50 shadow-md hover:shadow-indigo-500/25"
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export Final PDF
+                    <Download className="w-4 h-4 mr-2" /> Export Final PDF
                   </button>
                 </div>
               </div>
@@ -929,7 +932,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                 <div className="animate-in fade-in duration-500">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2 print:hidden">Live Document Preview</h3>
                   <div ref={reportRef} className="bg-white border border-slate-200/60 rounded-2xl shadow-xl p-12 min-h-[600px] print:p-0 print:border-none print:shadow-none print:w-full print:absolute print:top-0 print:left-0 print:bg-white">
-                    
                     <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-8 mb-10">
                       <div>
                         <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 shadow-sm">
@@ -944,7 +946,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                         <p className="text-xs font-medium text-slate-500">Ref: GCC-{Math.floor(Math.random() * 10000)}</p>
                       </div>
                     </div>
-
                     <div className="mb-10">
                       <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Prepared For</p>
                       <h2 className="text-2xl font-extrabold text-slate-900">{selectedClientForReport}</h2>
@@ -958,12 +959,8 @@ const Dashboard = ({ session, handleSignOut }) => {
                         </p>
                       </div>
                     </div>
-
                     <div className="space-y-8 text-slate-700 leading-relaxed text-base">
-                      <p>
-                        Based on our preliminary analysis of your proposed Global Capability Center (GCC) operations, we have prepared the following assessment regarding your structural and compliance obligations under the Indian Income Tax Act, 1961.
-                      </p>
-                      
+                      <p>Based on our preliminary analysis of your proposed Global Capability Center (GCC) operations, we have prepared the following assessment regarding your structural and compliance obligations under the Indian Income Tax Act, 1961.</p>
                       <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200/60 shadow-sm">
                         <h4 className="font-extrabold text-slate-900 mb-4 text-lg">Key Findings & Recommendations</h4>
                         <ul className="space-y-4">
@@ -972,7 +969,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                               <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Optimal Structure:</strong> We recommend establishing a Wholly Owned Subsidiary (WOS) as a Private Limited Company.</span></li>
                               <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Scale of Operations:</strong> Based on your inputs, the estimated headcount is <span className="font-bold text-slate-900">{headcount || '[Input in Simulator]'}</span> with an annual operating cost of <span className="font-bold text-slate-900">${opCost ? parseFloat(opCost).toLocaleString() : '[Input in Simulator]'}</span>.</span></li>
                               <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Corporate Tax:</strong> Subject to a concessional corporate tax rate of 25.17% (inclusive of surcharge and cess).</span></li>
-                              <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Repatriation:</strong> Dividend distributions will be subject to withholding tax at ~20%, subject to beneficial DTAA rates.</span></li>
                             </>
                           )}
                           {reportType === 'tp' && (
@@ -980,7 +976,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                               <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Methodology:</strong> Electing for the Safe Harbour rules at a 15.5% operating profit margin reduces litigation risk.</span></li>
                               <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Financial Baseline:</strong> Declared IT Service Revenue of <span className="font-bold text-slate-900">₹{revenue ? parseFloat(revenue).toLocaleString('en-IN') : '[Input in TP Engine]'}</span>.</span></li>
                               <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Required Safe Harbour Profit:</strong> Minimum required profit stands at <span className="font-bold text-emerald-700">₹{calculatedProfit ? calculatedProfit.toLocaleString('en-IN') : '[Calculate in TP Engine]'}</span> to remain strictly compliant.</span></li>
-                              <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-indigo-500 mr-3 mt-0.5 flex-shrink-0"/><span><strong>Documentation:</strong> Master File and Country-by-Country (CbC) reporting may be triggered based on global revenue thresholds.</span></li>
                             </>
                           )}
                           {reportType === 'pe' && (
@@ -991,19 +986,14 @@ const Dashboard = ({ session, handleSignOut }) => {
                           )}
                         </ul>
                       </div>
-
-                      <p className="text-sm text-slate-500 italic">
-                        * Please note that this is a preliminary assessment based on standard models. A detailed factual analysis is required before implementing any structuring decisions. We are available to discuss these findings in our upcoming strategy session.
-                      </p>
+                      <p className="text-sm text-slate-500 italic">* Please note that this is a preliminary assessment based on standard models. A detailed factual analysis is required before implementing any structuring decisions.</p>
                     </div>
-
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* PAGE 4: AUDIT LOGS PAGE */}
           {currentView === 'audit' && (
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
               <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] overflow-hidden">
@@ -1014,7 +1004,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                   </div>
                   <span className="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-200/50">{auditLogs.length} Records</span>
                 </div>
-                
                 <div className="divide-y divide-slate-100">
                   {auditLogs.length === 0 ? (
                     <div className="p-16 text-center">
@@ -1044,52 +1033,8 @@ const Dashboard = ({ session, handleSignOut }) => {
             </div>
           )}
 
-          {/* PAGE 5: SETTINGS PAGE */}
           {currentView === 'settings' && (
             <div className="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
-              
-              {/* Firm Profile Card */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8">
-                <h3 className="text-xl font-extrabold text-slate-900 mb-2">Firm Profile</h3>
-                <p className="text-sm font-medium text-slate-500 mb-8 border-b border-slate-100 pb-6">Manage your advisory firm's global display identity.</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Registered Firm Name</label>
-                    <input type="text" defaultValue="Deloitte Touche Tohmatsu India" className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Primary Partner Contact</label>
-                    <input type="email" value={session.user.email} disabled className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed font-medium shadow-inner" />
-                  </div>
-                </div>
-                <div className="mt-8">
-                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-indigo-500/25">
-                    Save Profile Settings
-                  </button>
-                </div>
-              </div>
-
-              {/* Security Card */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8">
-                <div className="flex items-center mb-2">
-                  <Shield className="w-6 h-6 text-indigo-600 mr-3" />
-                  <h3 className="text-xl font-extrabold text-slate-900">Authentication & Security</h3>
-                </div>
-                <p className="text-sm font-medium text-slate-500 mb-8 border-b border-slate-100 pb-6">Update your password and secure your account.</p>
-                
-                <div className="max-w-md space-y-5">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">New Password</label>
-                    <input type="password" placeholder="••••••••" className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 font-medium transition-all shadow-sm" />
-                  </div>
-                  <button className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg">
-                    Update Password
-                  </button>
-                </div>
-              </div>
-
-              {/* Billing & Subscription Card */}
               <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-bl-full -z-10 blur-3xl"></div>
                 <div className="flex items-center mb-2">
@@ -1113,7 +1058,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                 </div>
               </div>
 
-              {/* Team Management Card */}
               <div className="bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] p-8">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
@@ -1125,7 +1069,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                   </button>
                 </div>
                 <p className="text-sm font-medium text-slate-500 mb-8 border-b border-slate-100 pb-6">Control which associates can view or edit sensitive GCC client structures.</p>
-                
                 <div className="overflow-x-auto border border-slate-200/60 rounded-xl shadow-sm">
                   <table className="min-w-full divide-y divide-slate-200 text-sm text-left">
                     <thead className="bg-slate-50/80">
@@ -1159,7 +1102,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                   </table>
                 </div>
               </div>
-
             </div>
           )}
 
@@ -1167,20 +1109,15 @@ const Dashboard = ({ session, handleSignOut }) => {
       </main>
 
       {/* ======================= */}
-      {/* THE CLIENT DOSSIER (SLIDE-OVER DRAWER) */}
+      {/* GLOBAL MODALS           */}
       {/* ======================= */}
-      
-      {/* Drawer Backdrop */}
-      {isDossierOpen && (
-        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[100] transition-opacity duration-300 print:hidden" onClick={closeDossier} />
-      )}
 
-      {/* Drawer Panel */}
+      {/* DRAWER: CLIENT DOSSIER */}
+      {isDossierOpen && <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[100] transition-opacity duration-300 print:hidden" onClick={closeDossier} />}
+
       <div className={`fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl z-[110] transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col border-l border-slate-200 print:hidden ${isDossierOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        
         {selectedClient && (
           <>
-            {/* Dossier Header */}
             <div className="px-6 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start">
               <div>
                 <div className="flex items-center space-x-3 mb-3">
@@ -1200,12 +1137,10 @@ const Dashboard = ({ session, handleSignOut }) => {
               <button onClick={closeDossier} className="bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-full p-2 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
             </div>
 
-            {/* Dossier Tabs */}
             <div className="flex border-b border-slate-100 px-6">
               {['overview', 'actions', 'vault'].map(tab => (
                 <button 
-                  key={tab} 
-                  onClick={() => setDossierTab(tab)}
+                  key={tab} onClick={() => setDossierTab(tab)}
                   className={`py-4 px-4 text-sm font-bold capitalize tracking-wide transition-colors relative ${dossierTab === tab ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   {tab === 'actions' ? 'Action Items' : tab}
@@ -1214,9 +1149,7 @@ const Dashboard = ({ session, handleSignOut }) => {
               ))}
             </div>
 
-            {/* Dossier Content */}
             <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30">
-              
               {dossierTab === 'overview' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                   <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
@@ -1232,7 +1165,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                       </div>
                     </div>
                   </div>
-                  
                   <button onClick={() => handleOpenEdit(selectedClient)} className="w-full flex items-center justify-center py-3.5 bg-white border border-slate-200/80 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-indigo-300 transition-all shadow-sm">
                     <Settings className="w-4 h-4 mr-2" /> Edit Client Parameters
                   </button>
@@ -1241,14 +1173,12 @@ const Dashboard = ({ session, handleSignOut }) => {
                   </button>
                 </div>
               )}
-
               {dossierTab === 'actions' && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Compliance</h4>
                     <button className="text-indigo-600 hover:text-indigo-700 text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Task</button>
                   </div>
-                  
                   {selectedClient.tasks && selectedClient.tasks.length > 0 ? (
                     selectedClient.tasks.map(task => (
                       <div key={task.id} className={`p-4 rounded-xl border flex items-start cursor-pointer transition-colors ${task.done ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-indigo-100 shadow-sm hover:border-indigo-300'}`}>
@@ -1265,7 +1195,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                   )}
                 </div>
               )}
-
               {dossierTab === 'vault' && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                   <button className="w-full border-2 border-dashed border-slate-200 bg-white hover:bg-slate-50 hover:border-indigo-300 rounded-xl p-6 text-center transition-all group shadow-sm">
@@ -1275,19 +1204,6 @@ const Dashboard = ({ session, handleSignOut }) => {
                     <p className="text-sm font-bold text-slate-700">Upload Document</p>
                     <p className="text-xs text-slate-400 mt-1">TP Studies, Form 3CEFA, Incorporation Docs</p>
                   </button>
-
-                  <div className="pt-4">
-                    <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center">
-                        <FileSpreadsheet className="w-8 h-8 text-emerald-500 mr-3" />
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">FY25 TP Master File.pdf</p>
-                          <p className="text-xs text-slate-400">Added 2 days ago</p>
-                        </div>
-                      </div>
-                      <button className="text-slate-400 hover:text-slate-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors"><MoreVertical className="w-5 h-5"/></button>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -1295,184 +1211,6 @@ const Dashboard = ({ session, handleSignOut }) => {
         )}
       </div>
 
-      {/* ======================= */}
-      {/* GLOBAL MODALS           */}
-      {/* ======================= */}
-
-      {isEditClientModalOpen && editingClient && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200 print:hidden">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-xl font-extrabold text-slate-900">Modify Client Profile</h3>
-              <button onClick={() => setIsEditClientModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
-            </div>
-            <form onSubmit={handleUpdateClient} className="p-8 space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Company Name</label>
-                <input required type="text" value={editingClient.name} onChange={(e) => setEditingClient({...editingClient, name: e.target.value})} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" />
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Entity Type</label>
-                  <select value={editingClient.entity_type} onChange={(e) => setEditingClient({...editingClient, entity_type: e.target.value})} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 font-medium shadow-sm">
-                    <option>WOS</option><option>Branch</option><option>LLP</option><option>JV</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Risk Status</label>
-                  <select value={editingClient.risk_status} onChange={(e) => setEditingClient({...editingClient, risk_status: e.target.value})} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 font-medium shadow-sm">
-                    <option>Green</option><option>Amber</option><option>Red</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">TP Margin Option</label>
-                <select value={editingClient.tp_margin} onChange={(e) => setEditingClient({...editingClient, tp_margin: e.target.value})} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 font-medium shadow-sm">
-                  <option>15.5% Safe Harbour</option><option>Cost Plus 10%</option><option>CUP Method</option><option>Pending TP Study</option>
-                </select>
-              </div>
-              <div className="pt-6 flex items-center justify-between border-t border-slate-100 mt-8">
-                <button type="button" onClick={() => handleDeleteClient(editingClient)} className="flex items-center text-sm text-rose-600 hover:text-rose-800 font-bold px-4 py-2.5 rounded-xl hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200/50">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Purge Data
-                </button>
-                <button type="submit" disabled={isSubmitting} className="bg-indigo-600 text-white py-2.5 px-6 rounded-xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 flex justify-center items-center shadow-md hover:shadow-indigo-500/25">
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  {isSubmitting ? 'Saving...' : 'Apply Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* UPGRADED: Entity Simulator & Scenario Comparison Tool */}
-      {isEntityModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 flex items-center">
-                  <Layers className="w-6 h-6 mr-2 text-indigo-600" /> Scenario Comparison Engine
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">Dynamically forecast tax liabilities across GCC structures.</p>
-              </div>
-              <button onClick={() => { setIsEntityModalOpen(false); setShowEntityResults(false); }} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-2 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
-            </div>
-
-            <div className="p-8 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Estimated Headcount</label>
-                  <input type="number" value={headcount} onChange={(e) => setHeadcount(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white transition-all shadow-sm" placeholder="e.g. 50" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Annual Operating Cost ($)</label>
-                  <input type="number" value={opCost} onChange={(e) => setOpCost(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white transition-all shadow-sm" placeholder="e.g. 2000000" />
-                </div>
-              </div>
-
-              {!showEntityResults ? (
-                <button 
-                  onClick={() => setShowEntityResults(true)} 
-                  disabled={!headcount || !opCost} 
-                  className="w-full bg-indigo-600 text-white py-4 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex items-center justify-center text-lg"
-                >
-                  <Calculator className="w-5 h-5 mr-2" /> Run Comparative Analysis
-                </button>
-              ) : (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  
-                  {/* Dynamic Financial Baseline */}
-                  <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                    <span className="text-sm font-bold text-indigo-900">Baseline Markup (15.5% Safe Harbour)</span>
-                    <span className="text-lg font-extrabold text-indigo-700">
-                      Estimated Profit: ${(parseFloat(opCost) * 0.155).toLocaleString('en-US', {maximumFractionDigits: 0})}
-                    </span>
-                  </div>
-
-                  {/* Comparison Table */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* WOS Column */}
-                    <div className="bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col">
-                      <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-bl-xl uppercase tracking-wider">Optimal</div>
-                      <h4 className="font-extrabold text-slate-900 text-xl mb-1">WOS (Subsidiary)</h4>
-                      <p className="text-xs font-medium text-slate-500 mb-6 border-b border-slate-100 pb-4">Standard Corporate Setup</p>
-                      
-                      <div className="space-y-4 text-sm flex-1">
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Tax Rate</span><span className="font-bold text-slate-900">25.17%</span></div>
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Dividend Tax</span><span className="font-bold text-slate-900">~20%</span></div>
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Compliance Load</span><span className="font-bold text-slate-900">High</span></div>
-                        
-                        <div className="mt-6 pt-4 border-t border-slate-100">
-                          <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estimated Tax Liability</span>
-                          <span className="text-3xl font-extrabold text-emerald-600">
-                            ${((parseFloat(opCost) * 0.155) * 0.2517).toLocaleString('en-US', {maximumFractionDigits: 0})}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Branch Column */}
-                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col">
-                      <h4 className="font-extrabold text-slate-900 text-xl mb-1">Branch Office</h4>
-                      <p className="text-xs font-medium text-slate-500 mb-6 border-b border-slate-100 pb-4">Restricted Operations</p>
-                      
-                      <div className="space-y-4 text-sm flex-1">
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Tax Rate</span><span className="font-bold text-slate-900">43.68%</span></div>
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Dividend Tax</span><span className="font-bold text-emerald-600">Exempt</span></div>
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Compliance Load</span><span className="font-bold text-slate-900">Medium</span></div>
-                        
-                        <div className="mt-6 pt-4 border-t border-slate-100">
-                          <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estimated Tax Liability</span>
-                          <span className="text-3xl font-extrabold text-rose-600">
-                            ${((parseFloat(opCost) * 0.155) * 0.4368).toLocaleString('en-US', {maximumFractionDigits: 0})}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* LLP Column */}
-                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col">
-                      <h4 className="font-extrabold text-slate-900 text-xl mb-1">LLP</h4>
-                      <p className="text-xs font-medium text-slate-500 mb-6 border-b border-slate-100 pb-4">Joint Ventures / Small Teams</p>
-                      
-                      <div className="space-y-4 text-sm flex-1">
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Tax Rate</span><span className="font-bold text-slate-900">34.94%</span></div>
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Dividend Tax</span><span className="font-bold text-emerald-600">Exempt</span></div>
-                        <div className="flex justify-between items-center"><span className="text-slate-500">Compliance Load</span><span className="font-bold text-slate-900">Low</span></div>
-                        
-                        <div className="mt-6 pt-4 border-t border-slate-100">
-                          <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estimated Tax Liability</span>
-                          <span className="text-3xl font-extrabold text-amber-500">
-                            ${((parseFloat(opCost) * 0.155) * 0.3494).toLocaleString('en-US', {maximumFractionDigits: 0})}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-emerald-900">Potential Tax Savings</h4>
-                      <p className="text-sm text-emerald-700">By selecting WOS over a Branch structure annually.</p>
-                    </div>
-                    <span className="text-2xl font-extrabold text-emerald-600">
-                      +${(((parseFloat(opCost) * 0.155) * 0.4368) - ((parseFloat(opCost) * 0.155) * 0.2517)).toLocaleString('en-US', {maximumFractionDigits: 0})}
-                    </span>
-                  </div>
-
-                  <button onClick={() => setShowEntityResults(false)} className="w-full text-slate-500 font-bold text-sm hover:text-slate-800 transition-colors pt-4">
-                    Recalculate with new parameters
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL TO ADD NEW CLIENT */}
       {isAddClientModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200 print:hidden">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
@@ -1516,190 +1254,50 @@ const Dashboard = ({ session, handleSignOut }) => {
         </div>
       )}
 
-      {/* MODAL: INVITE TEAM MEMBER */}
-      {isInviteModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200 print:hidden">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-xl font-extrabold text-slate-900">Invite Team Member</h3>
-              <button onClick={() => setIsInviteModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
-            </div>
-            <div className="p-8 space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Colleague's Email</label>
-                <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm" placeholder="colleague@big4.com" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Assign Role</label>
-                <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white font-medium shadow-sm">
-                  <option>Admin (Full Access)</option>
-                  <option>Editor (Can Edit Clients)</option>
-                  <option>Viewer (Read-Only)</option>
-                </select>
-              </div>
-              <div className="pt-4">
-                <button 
-                  onClick={() => {
-                    setTeamMembers([...teamMembers, { id: Math.random(), email: inviteEmail, role: inviteRole, status: 'Pending' }]);
-                    addAuditLog("Invited Team Member", inviteEmail);
-                    showToast(`Invitation sent to ${inviteEmail}`);
-                    setIsInviteModalOpen(false);
-                    setInviteEmail('');
-                  }}
-                  disabled={!inviteEmail} 
-                  className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]"
-                >
-                  Send Invitation
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isTpModalOpen && (
+      {/* NEW: DTAA REPATRIATION ANALYZER MODAL */}
+      {isDtaaModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
             <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-xl font-extrabold text-slate-900 flex items-center">
-                <Calculator className="w-6 h-6 mr-2 text-indigo-600" /> Budget 2026 TP Engine
+                <Landmark className="w-6 h-6 mr-2 text-indigo-600" /> DTAA Repatriation Analyzer
               </h3>
-              <button onClick={() => setIsTpModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
+              <button onClick={() => { setIsDtaaModalOpen(false); setDtaaResult(null); }} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-8 space-y-6">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Total IT Service Revenue (₹)</label>
-                <input type="number" value={revenue} onChange={(e) => setRevenue(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 50000000" />
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Parent Company Jurisdiction</label>
+                <select value={dtaaCountry} onChange={(e) => setDtaaCountry(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium">
+                  <option value="US">United States</option>
+                  <option value="UK">United Kingdom</option>
+                  <option value="UAE">United Arab Emirates</option>
+                  <option value="Singapore">Singapore</option>
+                  <option value="Netherlands">Netherlands</option>
+                  <option value="Other">Other (Non-Treaty)</option>
+                </select>
               </div>
-              <button onClick={handleCalculateTP} disabled={!revenue} className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]">
-                Calculate Safe Harbour
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">Dividend Amount to Repatriate ($)</label>
+                <input type="number" value={dtaaAmount} onChange={(e) => setDtaaAmount(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 5000000" />
+              </div>
+              <button onClick={handleCalculateDTAA} disabled={!dtaaAmount} className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]">
+                Calculate Withholding Tax
               </button>
-              {calculatedProfit !== null && (
-                <div className="mt-6 p-6 bg-emerald-50 border border-emerald-200/60 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <p className="text-sm font-bold text-emerald-800 mb-1 uppercase tracking-wider">Required Operating Profit (15.5%)</p>
-                  <p className="text-4xl font-extrabold text-emerald-600 tracking-tight">₹{calculatedProfit.toLocaleString('en-IN')}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isEtrModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-xl font-extrabold text-slate-900 flex items-center">
-                <BarChart3 className="w-6 h-6 mr-2 text-indigo-600" /> Pillar Two ETR Model
-              </h3>
-              <button onClick={() => { setIsEtrModalOpen(false); setEtrResult(null); }} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
-            </div>
-            
-            <div className="p-8 space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Global Revenue (€)</label>
-                <input type="number" value={globalRevenue} onChange={(e) => setGlobalRevenue(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 800000000" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Indian Profit (€)</label>
-                <input type="number" value={indianProfit} onChange={(e) => setIndianProfit(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 5000000" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Current Indian Tax Paid (€)</label>
-                <input type="number" value={indianTax} onChange={(e) => setIndianTax(e.target.value)} className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all shadow-sm font-medium" placeholder="e.g. 500000" />
-              </div>
-              <div className="pt-4">
-                <button onClick={handleCalculateETR} disabled={!globalRevenue || !indianProfit || !indianTax} className="w-full bg-indigo-600 text-white py-3.5 px-4 rounded-xl font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 flex justify-center items-center transform active:scale-[0.98]">
-                  Calculate Pillar Two Impact
-                </button>
-              </div>
-
-              {etrResult && (
-                <div className={`mt-6 p-6 border rounded-2xl transition-all animate-in fade-in slide-in-from-bottom-2 duration-300 ${!etrResult.isSubject ? 'bg-slate-50 border-slate-200' : etrResult.topUpTax > 0 ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                  {!etrResult.isSubject ? (
-                     <div className="text-center">
-                       <p className="text-base font-extrabold text-slate-800">Out of Scope</p>
-                       <p className="text-sm font-medium text-slate-500 mt-1">Global revenue is under the €750M threshold.</p>
-                     </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">Calculated ETR:</span>
-                        <span className={`text-2xl font-extrabold ${parseFloat(etrResult.etr) < 15 ? 'text-rose-600' : 'text-emerald-600'}`}>{etrResult.etr}%</span>
-                      </div>
-                      {etrResult.topUpTax > 0 ? (
-                        <div className="pt-4 mt-2 border-t border-rose-200/60">
-                          <p className="text-sm font-bold text-rose-800 mb-1 uppercase tracking-wider">Required Top-up Tax</p>
-                          <p className="text-3xl font-extrabold text-rose-600">€{etrResult.topUpTax.toLocaleString('en-EU')}</p>
-                        </div>
-                      ) : (
-                        <div className="pt-4 mt-2 border-t border-emerald-200/60 flex items-center justify-center">
-                           <CheckCircle2 className="w-5 h-5 text-emerald-600 mr-2" />
-                           <p className="text-sm font-extrabold text-emerald-800 uppercase tracking-wider">Compliant (ETR ≥ 15%)</p>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isPeModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 print:hidden">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all border border-slate-200 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-xl font-extrabold text-slate-900 flex items-center">
-                <Globe className="w-6 h-6 mr-2 text-rose-600" /> Expat PE Risk Tracker
-              </h3>
-              <button onClick={() => setIsPeModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full p-1.5 transition-colors border border-slate-200 shadow-sm"><X className="w-5 h-5" /></button>
-            </div>
-            
-            <div className="p-8 overflow-y-auto">
-              <p className="text-sm font-medium text-slate-500 mb-8 p-4 bg-slate-50 rounded-xl border border-slate-100">Monitoring days spent in India to prevent triggering Service PE under DTAA guidelines (Threshold: 90 days).</p>
               
-              {expats.length === 0 ? (
-                <div className="text-center p-10 bg-white border border-slate-200 border-dashed rounded-2xl">
-                  <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
-                  <p className="text-base text-slate-700 font-bold">No Expat Data Found</p>
-                  <p className="text-sm text-slate-500 mt-1">Connect HR database to populate travel logs.</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {expats.map((expat) => {
-                    const days = expat.days_in_india;
-                    let statusColor = "bg-emerald-500"; let bgLight = "bg-emerald-50"; let textColor = "text-emerald-700"; let warningText = "Low Risk"; let barColor = "bg-emerald-500";
-                    if (days >= 90) { statusColor = "bg-rose-500"; bgLight = "bg-rose-50"; textColor = "text-rose-700"; warningText = "CRITICAL: PE TRIGGERED"; barColor = "bg-rose-500"; } 
-                    else if (days >= 60) { statusColor = "bg-amber-500"; bgLight = "bg-amber-50"; textColor = "text-amber-700"; warningText = "Approaching Threshold"; barColor = "bg-amber-500"; }
-                    const progressPercent = Math.min((days / 90) * 100, 100);
-
-                    return (
-                      <div key={expat.id} className={`p-6 rounded-2xl border ${days >= 90 ? 'border-rose-200 shadow-sm' : 'border-slate-200'} ${bgLight} transition-all`}>
-                        <div className="flex justify-between items-end mb-4">
-                          <div>
-                            <p className="font-extrabold text-slate-900 text-lg">{expat.director_name}</p>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Client ID: {expat.client_id}</p>
-                          </div>
-                          <div className="text-right">
-                            <span className={`text-[11px] font-extrabold px-3 py-1.5 rounded-lg bg-white border border-slate-200/60 shadow-sm uppercase tracking-wider ${textColor}`}>{warningText}</span>
-                          </div>
-                        </div>
-                        <div className="mt-4 bg-white p-4 rounded-xl border border-slate-100/50 shadow-sm">
-                          <div className="flex justify-between text-xs font-extrabold text-slate-600 mb-2 uppercase tracking-wider">
-                            <span className={textColor}>{days} days elapsed</span>
-                            <span>90 Day Limit</span>
-                          </div>
-                          <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200/50">
-                            <div className={`${barColor} h-full rounded-full transition-all duration-1000 ease-out relative`} style={{ width: `${progressPercent}%` }}>
-                               {days >= 60 && <div className="absolute top-0 right-0 bottom-0 left-0 bg-white/20 animate-pulse"></div>}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              {dtaaResult && (
+                <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
+                    <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Applicable DTAA Rate</span>
+                    <span className="text-lg font-extrabold text-slate-900">{dtaaResult.rate}%</span>
+                  </div>
+                  <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex justify-between items-center">
+                    <span className="text-sm font-bold text-rose-800 uppercase tracking-wider">Withholding Tax</span>
+                    <span className="text-lg font-extrabold text-rose-600">${dtaaResult.tax.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
+                  </div>
+                  <div className="p-6 bg-emerald-50 border border-emerald-200/60 rounded-2xl">
+                    <p className="text-sm font-bold text-emerald-800 mb-1 uppercase tracking-wider">Net Repatriated Cash</p>
+                    <p className="text-4xl font-extrabold text-emerald-600 tracking-tight">${dtaaResult.net.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
+                  </div>
                 </div>
               )}
             </div>
