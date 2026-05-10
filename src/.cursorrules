@@ -1,0 +1,68 @@
+# GCC Advisory Pro - Cursor System Rules
+
+You are an expert React and Web Development AI assistant. You are building "GCC Advisory Pro," a unified platform replacing manual GCC advisory services.
+
+Always adhere to the following strict guidelines when generating, editing, or refactoring code for this project.
+
+## 1. Tech Stack & Environment
+- **Framework:** React 19 (via Vite)
+- **Styling:** Tailwind CSS v3
+- **Icons:** Lucide React
+- **Database/Auth:** Supabase (mocking first, migrating to real)
+- **Language:** JavaScript/JSX (No TypeScript unless explicitly requested)
+
+## 2. Architectural & Structural Limits
+- **File Size Limit:** NO FILE MAY EXCEED 350 LINES. If a component grows beyond this, abstract it into smaller sub-components or custom hooks.
+- **Root Router:** `App.jsx` must remain strictly for routing (target ~60 lines).
+- **Prop Drilling:** Zero prop-drilling greater than 2 levels. Use Context for deeper state.
+- **Strict File Structure:**
+  - `src/context/` (AppContext, ClientContext, ComplianceContext, UIContext)
+  - `src/hooks/` (Custom hooks like useClients, useCompliance)
+  - `src/lib/` (Supabase client, complex calculations, and mock data)
+  - `src/components/` (Split into `ui/`, `layout/`, `auth/`, `shared/`)
+  - `src/pages/` (Page-level components mapped to routes)
+
+## 3. Global State & UI Interactions
+- **Context over Local State for Global UI:** Do NOT use `useState` for modal booleans in page components. All modals, drawers, and global UI states must be managed via `UIContext` (e.g., `useUI().openModal('addClient')`).
+- **NO Native Browser Dialogs:** - NEVER use `window.confirm()`. Always use `UIContext.showConfirm()`.
+  - NEVER use `window.alert()`. Use the custom Toast component/context.
+- **Empty & Loading States:** Every list, table, or data fetch must have an integrated `EmptyState` and `Skeleton` loader.
+- **No Random IDs:** NEVER use `Math.random()` or `Date.now()` for key generation or IDs. Use a robust ID generator (like `crypto.randomUUID()` or `uuid`) or rely on database IDs.
+
+## 4. Domain & Business Logic Rules
+Do not hallucinate domain metrics. Rely strictly on the `src/lib/data/` or `src/lib/calculations/` logic.
+- **Compliance:** Master calendar has 40+ filings (IT, GST, FEMA, ROC, Labour).
+- **Transfer Pricing (TP):** Safe Harbour margins, TNMM benchmarking (180+ comparables), Form 3CEB thresholds.
+- **DTAA:** 96-country database. Standard withholding tax checks vs. DTAA rates for Dividend, Interest, Royalty, FTS.
+- **FEMA/RBI:** FDI limits, FC-GPR (30 days), FLA return (15 July), ECB all-in cost ceilings.
+- **Expats:** PE risk is calculated via Service/Fixed Place/Dependent Agent tests based on exact travel log days.
+
+## 5. Styling & Visual Standards
+- **Tailwind Only:** No custom CSS files unless absolutely necessary for print outputs (e.g., PDF reports).
+- **Typography:** Inter font via Google Fonts.
+- **Color System:** Use semantic tokens defined in `tailwind.config.js`.
+- **Responsive:** Mobile-first approach. All views must be functional at 375px width.
+- **Dark Mode:** Must be supported, toggleable, and persisted in `localStorage`.
+
+## 6. Execution & Dependency Chain
+When building, assume the following Phase Dependency Chain. Do not build Phase N until Phase N-1 is complete:
+1. Foundation (Data Layer, App Structure)
+2. Phase 1: Shell (Auth, Paywall, Layout)
+3. Phase 2: Client Intelligence Hub (Dossiers, Onboarding)
+4. Phase 3: Compliance Command Centre
+5. Phase 4: TP Suite
+6. Phase 5: Entity Structuring Lab
+7. Phase 6: FEMA & RBI
+8. Phase 7: GST Intelligence
+9. Phase 8: Expat & Payroll
+10. Phase 9: Notice Manager
+11. Phase 10: Document Vault
+12. Phase 11: Regulatory Feed
+13. Phase 12: Reports
+14. Phase 13: Command Centre Dashboard
+15. Phase 14 & 15: Polish & Production Hardening
+
+## 7. Output Quality
+- Code must be production-ready, clean, and well-commented.
+- Forms must include comprehensive validation (especially for Auth and Client Onboarding).
+- Avoid console errors; wrap critical operations in Error Boundaries.
