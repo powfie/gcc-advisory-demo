@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import { DashboardLayout } from './components/layout/DashboardLayout';
-import ClientsPage from './pages/ClientsPage'; // Your newly connected live page!
+
+// Live Pages
+import ClientsPage from './pages/ClientsPage';
+import TPSuitePage from './pages/tp/TPSuitePage'; 
+import EntityStructuringPage from './pages/structuring/EntityStructuringPage';
+import ReportsEnginePage from './pages/reports/ReportsEnginePage'; 
+import FEMASuitePage from './pages/fema/FEMASuitePage'; // The Treasury & Capital Modeler
 
 // --- TEMPORARY PAGE PLACEHOLDER ---
-// We will extract this into an OverviewPage.jsx next
+// We will extract this into an OverviewPage.jsx later
 const OverviewPage = () => (
   <div className="p-10 bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] text-center animate-in fade-in zoom-in-95 duration-500">
     <h2 className="text-2xl font-extrabold text-slate-900">Command Centre Active 🟢</h2>
@@ -40,6 +46,10 @@ function AppRouter() {
     switch (currentView) {
       case 'overview': return <OverviewPage />;
       case 'clients': return <ClientsPage />;
+      case 'tp': return <TPSuitePage />;
+      case 'entity': return <EntityStructuringPage />; 
+      case 'reports': return <ReportsEnginePage />;   
+      case 'fema': return <FEMASuitePage />; // Routing to FEMA Lab
       default: return (
         <div className="p-10 text-center bg-white border border-dashed border-slate-300 rounded-2xl">
           <p className="text-lg font-bold text-slate-400">🚧 Module Under Construction</p>
