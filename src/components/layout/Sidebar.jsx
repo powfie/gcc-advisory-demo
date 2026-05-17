@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   Building2, BarChart3, Newspaper, Layers, AlertOctagon, 
   Calculator, Globe, FileText, Users, FolderOpen, BookOpen, 
-  Shield, Activity, Settings, X, LogOut 
+  Activity, Settings, X, LogOut, CalendarDays 
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -12,7 +12,8 @@ const NAV = [
   { group: 'Client Management', items: [{ id: 'clients', icon: Layers, label: 'Client Portfolios' }, { id: 'notices', icon: AlertOctagon, label: 'Notice Manager' }] },
   { group: 'Tax Tools', items: [{ id: 'tp', icon: Calculator, label: 'Transfer Pricing' }, { id: 'fema', icon: Globe, label: 'FEMA & RBI' }, { id: 'gst', icon: FileText, label: 'GST Intelligence' }, { id: 'entity', icon: Building2, label: 'Entity Structuring' }] },
   { group: 'Advisory', items: [{ id: 'expat', icon: Users, label: 'Expat & Payroll' }, { id: 'documents', icon: FolderOpen, label: 'Document Vault' }, { id: 'ica', icon: BookOpen, label: 'ICA Builder' }, { id: 'reports', icon: FileText, label: 'Strategy Reports' }] },
-  { group: 'Operations', items: [{ id: 'compliance', icon: Shield, label: 'Compliance Calendar' }, { id: 'audit', icon: Activity, label: 'Audit Trail' }, { id: 'settings', icon: Settings, label: 'Firm Settings' }] },
+  // 👇 Updated this line to use id: 'calendar' and the CalendarDays icon
+  { group: 'Operations', items: [{ id: 'calendar', icon: CalendarDays, label: 'Compliance Calendar' }, { id: 'audit', icon: Activity, label: 'Audit Trail' }, { id: 'settings', icon: Settings, label: 'Firm Settings' }] },
 ];
 
 export function Sidebar({ currentView, onNav, sidebarOpen, setSidebarOpen }) {

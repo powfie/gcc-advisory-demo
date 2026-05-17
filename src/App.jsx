@@ -4,12 +4,13 @@ import { AppProvider } from './context/AppContext';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 // Live Pages
-import OverviewPage from './pages/OverviewPage'; // The new Command Centre!
+import OverviewPage from './pages/OverviewPage'; 
 import ClientsPage from './pages/ClientsPage';
 import TPSuitePage from './pages/tp/TPSuitePage'; 
 import EntityStructuringPage from './pages/structuring/EntityStructuringPage';
 import ReportsEnginePage from './pages/reports/ReportsEnginePage'; 
 import FEMASuitePage from './pages/fema/FEMASuitePage'; 
+import ComplianceCalendarPage from './pages/calendar/ComplianceCalendarPage'; // The new Regulatory Ledger
 
 function AppRouter() {
   const { session, loading } = useAuth();
@@ -34,12 +35,13 @@ function AppRouter() {
 
   const renderView = () => {
     switch (currentView) {
-      case 'overview': return <OverviewPage />; // Now pointing to your live dashboard
+      case 'overview': return <OverviewPage />;
       case 'clients': return <ClientsPage />;
       case 'tp': return <TPSuitePage />;
       case 'entity': return <EntityStructuringPage />; 
       case 'reports': return <ReportsEnginePage />;   
       case 'fema': return <FEMASuitePage />;
+      case 'calendar': return <ComplianceCalendarPage />; // Routing to the Compliance Ledger
       default: return (
         <div className="p-10 text-center bg-white border border-dashed border-slate-300 rounded-2xl">
           <p className="text-lg font-bold text-slate-400">🚧 Module Under Construction</p>

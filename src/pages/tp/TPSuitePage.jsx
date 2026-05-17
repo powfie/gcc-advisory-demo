@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Calculator, AlertCircle } from 'lucide-react';
 import { EmptyState } from '../../components/ui/EmptyState';
+
+// Sub-modules
 import SafeHarbourAnalyser from './SafeHarbourAnalyser';
 import BenchmarkingEngine from './BenchmarkingEngine';
 import MethodSelector from './MethodSelector';
-import PillarTwoModel from './PillarTwoModel';
 import APAModule from './APAModule';
+import PillarTwoModel from './PillarTwoModel'; // Your new Big 4-grade engine!
 
 export default function TPSuitePage() {
   const { clients } = useApp();
@@ -44,15 +46,24 @@ export default function TPSuitePage() {
           description="Select a client from the dropdown above to load their Transfer Pricing parameters and run the benchmarking engines."
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+          
+          {/* Left Column: Domestic TP & Structuring */}
           <div className="space-y-6">
             <SafeHarbourAnalyser client={client} />
             <MethodSelector client={client} />
             <APAModule client={client} />
           </div>
+
+          {/* Right Column: Global TP & Pillar Two Modeler */}
           <div className="space-y-6">
             <BenchmarkingEngine client={client} />
-            <PillarTwoModel client={client} />
+            
+            {/* The new standalone ETR Modeler */}
+            <div className="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-sm">
+              <PillarTwoModel />
+            </div>
+            
           </div>
         </div>
       )}
